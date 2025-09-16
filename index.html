@@ -5,97 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vistoria - fotos com data/hora</title>
   <style>
-    :root{--accent:#2b6cb0}
-    body{font-family:Inter,system-ui,Segoe UI,Arial;background:#111827;color:#e5e7eb;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px}
-    .card{width:100%;max-width:920px;background:#0b1220;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,.6)}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    h1{font-size:18px;margin:0}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
+    body{font-family:Arial, sans-serif;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px}
+    .card{width:100%;max-width:720px;background:#0b1220;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,.6);text-align:center}
     video, canvas{width:100%;height:auto;border-radius:8px;background:#000}
-    .controls{display:flex;flex-direction:column;gap:8px}
-    .row{display:flex;gap:8px}
-    button{background:var(--accent);border:0;padding:10px 12px;border-radius:8px;color:white;cursor:pointer}
-    input,select{padding:8px;border-radius:8px;border:1px solid #24303f;background:#061222;color:#e6eef8}
-    small{color:#9aa7b8}
-    .preview{display:flex;flex-direction:column;gap:8px}
+    button{background:#2b6cb0;border:0;padding:10px 12px;border-radius:8px;color:white;cursor:pointer;margin-top:8px}
+    small{color:#9aa7b8;display:block;margin-top:8px}
   </style>
 </head>
 <body>
   <div class="card">
-    <header>
-      <h1>Vistoria - tirar foto com data/hora (marca d'água)</h1>
-      <small>Funciona direto no navegador. Toque em Permitir câmera.</small>
-    </header>
-
-    <div class="grid">
-      <div>
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas" style="display:none"></canvas>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button id="capture">📸 Capturar</button>
-          <button id="toggleCam">🔁 Front/Traseira</button>
-          <button id="download" style="display:none">⬇️ Baixar imagem</button>
-        </div>
-        <p style="margin-top:8px"><small>Se estiver usando celular: a imagem será baixada na pasta de Downloads. Muitos aparelhos a exibem automaticamente na Galeria/Fotos.</small></p>
-      </div>
-
-      <aside class="controls">
-        <div class="row">
-          <label style="flex:1">
-            Formato
-            <select id="format">
-              <option value="image/png">PNG</option>
-              <option value="image/jpeg">JPEG</option>
-            </select>
-          </label>
-          <label style="width:120px">
-            Qualidade (JPEG)
-            <input id="quality" type="range" min="0.3" max="1" step="0.05" value="0.9">
-          </label>
-        </div>
-
-        <label>
-          Texto da marca d'água (use {datetime} para inserir data/hora atual)
-          <input id="watermarkText" value="Vistoria - {datetime}" />
-        </label>
-
-        <div class="row">
-          <label style="flex:1">
-            Posição
-            <select id="position">
-              <option value="bottom-left">Inferior esquerdo</option>
-              <option value="bottom-right">Inferior direito</option>
-              <option value="top-left">Superior esquerdo</option>
-              <option value="top-right">Superior direito</option>
-              <option value="center">Centro</option>
-            </select>
-          </label>
-
-          <label style="width:120px">
-            Tamanho (px)
-            <input id="fontSize" type="number" value="28" min="12" max="96">
-          </label>
-        </div>
-
-        <label>
-          Cor do texto
-          <input id="fontColor" type="color" value="#ffffff">
-        </label>
-
-        <label>
-          Mostrar fundo semi-transparente atrás do texto
-          <select id="bgBox">
-            <option value="yes">Sim</option>
-            <option value="no">Não</option>
-          </select>
-        </label>
-
-        <div class="preview">
-          <small>Pré-visualização da hora atual:</small>
-          <div id="previewTime" style="padding:8px;background:#071026;border-radius:6px">--</div>
-        </div>
-      </aside>
-    </div>
+    <h1>Vistoria - Captura de Foto</h1>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none"></canvas>
+    <button id="capture">📸 Capturar</button>
+    <a id="download" style="display:none" download>⬇️ Baixar imagem</a>
+    <small>Ao capturar, a data e hora serão adicionadas automaticamente.</small>
   </div>
 
 <script>
@@ -104,32 +28,13 @@
   const canvas = document.getElementById('canvas');
   const captureBtn = document.getElementById('capture');
   const downloadBtn = document.getElementById('download');
-  const toggleCamBtn = document.getElementById('toggleCam');
-  const formatSel = document.getElementById('format');
-  const qualityRange = document.getElementById('quality');
-  const watermarkInput = document.getElementById('watermarkText');
-  const positionSel = document.getElementById('position');
-  const fontSizeInput = document.getElementById('fontSize');
-  const fontColorInput = document.getElementById('fontColor');
-  const bgBox = document.getElementById('bgBox');
-  const previewTime = document.getElementById('previewTime');
-
-  let useFront = false;
   let stream;
 
   function nowDatetime(){
     const d = new Date();
-    // Format: dd/mm/yyyy HH:MM:SS
     const pad = n=>String(n).padStart(2,'0');
     return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
-
-  function updatePreview(){
-    const txt = watermarkInput.value.replace('{datetime}', nowDatetime());
-    previewTime.textContent = txt;
-  }
-  setInterval(updatePreview,1000);
-  updatePreview();
 
   async function startCamera(){
     if (stream) {
@@ -137,7 +42,7 @@
       stream = null;
     }
     const constraints = {
-      video: { facingMode: useFront ? 'user' : 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
       audio: false
     };
     try{
@@ -150,88 +55,33 @@
     }
   }
 
-  toggleCamBtn.addEventListener('click', ()=>{ useFront = !useFront; startCamera(); });
-
   captureBtn.addEventListener('click', ()=>{
-    // set canvas size equal to video stream size
     const vw = video.videoWidth;
     const vh = video.videoHeight;
     canvas.width = vw;
     canvas.height = vh;
     const ctx = canvas.getContext('2d');
-    // Draw current frame
     ctx.drawImage(video,0,0,vw,vh);
 
-    // Prepare watermark
-    const fontSize = parseInt(fontSizeInput.value,10) || 28;
+    // Marca d'água com data e hora no canto inferior esquerdo
+    const fontSize = 32;
     ctx.font = `${fontSize}px sans-serif`;
+    ctx.fillStyle = "black";
     ctx.textBaseline = 'bottom';
-    const rawText = watermarkInput.value.replace('{datetime}', nowDatetime());
+    const text = nowDatetime();
+    const padding = 20;
+    ctx.fillText(text, padding, vh - padding);
 
-    const padding = Math.round(fontSize * 0.5);
-    const lines = rawText.split('\n');
-    // measure width and height
-    const metrics = lines.map(l=>ctx.measureText(l));
-    const textWidth = Math.max(...metrics.map(m=>m.width));
-    const textHeight = fontSize * lines.length + (lines.length-1)*4;
-
-    let x = padding;
-    let y = canvas.height - padding;
-    const pos = positionSel.value;
-    if(pos.includes('top')) y = padding + textHeight;
-    if(pos.includes('right')) x = canvas.width - textWidth - padding;
-    if(pos === 'center') { x = (canvas.width - textWidth)/2; y = (canvas.height + textHeight)/2 }
-
-    // draw background box if requested
-    if(bgBox.value === 'yes'){
-      const boxPadding = Math.round(fontSize * 0.6);
-      const boxX = x - boxPadding/2;
-      const boxY = y - textHeight - boxPadding/2;
-      const boxW = textWidth + boxPadding;
-      const boxH = textHeight + boxPadding;
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.fillRect(boxX, boxY, boxW, boxH);
-    }
-
-    // shadow for text to improve readability
-    ctx.fillStyle = fontColorInput.value;
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    ctx.shadowBlur = 4;
-
-    // draw lines
-    for(let i=0;i<lines.length;i++){
-      const line = lines[i];
-      const lineY = y - (lines.length - 1 - i) * (fontSize + 4);
-      ctx.fillText(line, x, lineY);
-    }
-
-    // show download
-    downloadBtn.style.display = 'inline-block';
-    // create blob and set href
-    const mime = formatSel.value;
-    const quality = parseFloat(qualityRange.value);
+    // Criar download
     canvas.toBlob(function(blob){
       const url = URL.createObjectURL(blob);
       downloadBtn.href = url;
-      downloadBtn.download = `vistoria_${Date.now()}.${mime.includes('png')? 'png' : 'jpg'}`;
-    }, mime, quality);
-    // show a preview by replacing the video with the captured image for a short time
-    // For simplicity we'll open image in new tab when clicking download
+      downloadBtn.download = `vistoria_${Date.now()}.jpg`;
+      downloadBtn.style.display = 'inline-block';
+    }, 'image/jpeg', 0.9);
   });
 
-  // make downloadBtn an anchor
-  downloadBtn.addEventListener('click', function(e){
-    // default anchor download will work; for mobile, user may need to choose 'Salvar imagem' depending on browser
-  });
-
-  // initialize camera
   startCamera();
-
-  // update preview when inputs change
-  [watermarkInput,positionSel,fontSizeInput,fontColorInput,bgBox].forEach(el=>el.addEventListener('input', updatePreview));
-
 })();
 </script>
 </body>
