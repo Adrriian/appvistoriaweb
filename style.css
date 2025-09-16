@@ -17,23 +17,32 @@ body {
   padding: 16px;
 }
 
-/* Modal */
-.modal {
+/* Overlay modal (andar 2) */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-overlay .modal-content {
+  background: #fff;
+  width: 80%; height: 80%;
+  border-radius: 12px;
+  padding: 16px;
+  box-sizing: border-box;
   display: none;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  justify-content: space-between;
+  color: #000;
 }
 
-.modal.active {
+.modal-overlay .modal-content.active {
   display: flex;
-}
-
-.modal img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 16px;
-  border-radius: 8px;
 }
 
 button {
@@ -50,18 +59,14 @@ button {
   margin: 8px;
 }
 
-/* Câmera */
-.camera-container {
-  display: none;
+/* Câmera (andar 1) */
+#camera-container {
+  display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.camera-container.active {
-  display: flex;
-}
-
-.camera-container video {
+#camera-container video {
   width: 100%;
   max-width: 600px;
   border-radius: 8px;
@@ -113,5 +118,9 @@ button {
 @media (max-width: 480px) {
   button {
     width: 90%;
+  }
+  .modal-overlay .modal-content {
+    width: 90%;
+    height: 90%;
   }
 }
