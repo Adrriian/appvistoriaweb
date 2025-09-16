@@ -3,16 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modal de Foto - Vistoria</title>
+  <title>Vistoria Veicular</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-  <!-- Modal inicial da foto -->
-  <div id="modal-foto" class="modal active">
+
+  <!-- Modal Instruções -->
+  <div id="modal-instrucoes" class="modal active">
+    <h2>Instruções para tirar as fotos</h2>
+    <p>As fotos precisam ser tiradas com o celular deitado e não em pé.</p>
+    <div class="img-instrucoes">
+      <div>
+        <img src="deitado.png" alt="Correto">
+        <p>Correto</p>
+      </div>
+      <div>
+        <img src="em_pe.png" alt="Errado">
+        <p>Errado</p>
+      </div>
+    </div>
+    <button id="btn-fazer-vistoria">Fazer Vistoria</button>
+  </div>
+
+  <!-- Modal Tipo de Veículo -->
+  <div id="modal-veiculo" class="modal">
+    <h2>Escolha o tipo de veículo</h2>
+    <div class="opcoes-veiculo">
+      <button data-veiculo="carro">Carro</button>
+      <button data-veiculo="moto">Moto</button>
+      <button data-veiculo="caminhao">Caminhão</button>
+    </div>
+  </div>
+
+  <!-- Modal Modo de Fotos -->
+  <div id="modal-modo-fotos" class="modal">
+    <h2>Escolha o modo de fotos</h2>
+    <button id="btn-todas">Tirar todas as fotos</button>
+    <button id="btn-especifica">Tirar foto específica</button>
+  </div>
+
+  <!-- Modal Lista de Fotos (seleção específica) -->
+  <div id="modal-fotos-especificas" class="modal">
+    <h2>Escolha a(s) foto(s) que deseja tirar</h2>
+    <div id="lista-fotos-especificas" class="lista-fotos">
+      <!-- Botões gerados dinamicamente -->
+    </div>
+  </div>
+
+  <!-- Modal da Foto -->
+  <div id="modal-foto" class="modal">
     <h2 id="titulo-foto">Frente</h2>
-    <img src="referencia.jpg" alt="Foto de referência" class="imagem-referencia">
+    <img id="referencia-img" src="placeholder.png" alt="Foto de referência">
     <button id="ir-camera">Ir para câmera</button>
   </div>
 
@@ -22,13 +65,13 @@
     <button id="tirar-foto">Tirar Foto</button>
   </div>
 
-  <!-- Modal resultado -->
+  <!-- Modal Resultado -->
   <div id="modal-resultado" class="modal">
     <h2>Resultado</h2>
     <div class="fotos-comparacao">
       <div class="foto-box">
         <h3>Foto de referência</h3>
-        <img id="foto-referencia" src="referencia.jpg" alt="Referência">
+        <img id="foto-referencia" src="placeholder.png" alt="Referência">
       </div>
       <div class="foto-box">
         <h3>Sua foto</h3>
@@ -40,6 +83,7 @@
       <button id="proxima">Próxima Foto</button>
     </div>
   </div>
+
 </div>
 
 <script src="script.js"></script>
