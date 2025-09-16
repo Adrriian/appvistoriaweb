@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vistoria PWA - Fotos Automáticas</title>
-  <link rel="manifest" href="manifest.json">
+  <title>Vistoria - Upload para ImgBB</title>
   <style>
     body{font-family:Arial, sans-serif;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px}
     .card{width:100%;max-width:720px;background:#0b1220;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,.6);text-align:center}
@@ -15,20 +14,25 @@
 </head>
 <body>
   <div class="card">
-    <h1>Vistoria - Captura Automática</h1>
+    <h1>Vistoria - Upload automático</h1>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" style="display:none"></canvas>
     <button id="capture">📸 Capturar</button>
-    <small>Ao capturar, a data/hora será adicionada e a foto será salva automaticamente na pasta escolhida.</small>
+    <button id="finish">✅ Terminar Vistoria</button>
+    <small>As fotos serão enviadas automaticamente para ImgBB.</small>
   </div>
 
 <script>
 (async function(){
+  const API_KEY = "5c298eb2a1382aeb9277e4da5696b77d";
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const captureBtn = document.getElementById('capture');
+  const finishBtn = document.getElementById('finish');
+  const fotosLinks = [];
   let stream;
-  let dirHandle;
+  let fotoCount = 0;
+  const timestampVistoria = new Date().toISOString().replace(/[:.-]/g,"");
 
   function nowDatetime(){
     const d = new Date();
@@ -37,7 +41,6 @@
   }
 
   async function startCamera(){
-    if (stream) stream.getTracks().forEach(t=>t.stop());
     try{
       stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
       video.srcObject = stream;
@@ -47,54 +50,54 @@
     }
   }
 
-  // Solicita ao usuário a pasta onde salvar as fotos (apenas uma vez)
-  async function selectDirectory(){
-    if ('showDirectoryPicker' in window){
-      try{
-        dirHandle = await window.showDirectoryPicker();
-      }catch(err){
-        alert('Necessário selecionar uma pasta para salvar as fotos.');
+  async function uploadImgBB(blob, fileName){
+    const form = new FormData();
+    form.append("key", API_KEY);
+    form.append("image", blob, fileName);
+    try{
+      const res = await fetch("https://api.imgbb.com/1/upload", {
+        method: "POST",
+        body: form
+      });
+      const data = await res.json();
+      if(data.success){
+        fotosLinks.push(data.data.url);
+        alert(`Foto ${fileName} enviada com sucesso!`);
+      } else {
+        alert(`Erro no upload: ${data.error.message}`);
       }
-    } else {
-      alert('Seu navegador não suporta File System Access API. Fotos serão apenas baixadas manualmente.');
+    } catch(err){
+      alert('Erro ao enviar imagem: ' + err.message);
     }
   }
 
   captureBtn.addEventListener('click', async ()=>{
-    if(!dirHandle){
-      await selectDirectory();
-      if(!dirHandle) return;
-    }
-
     const vw = video.videoWidth;
     const vh = video.videoHeight;
     canvas.width = vw;
     canvas.height = vh;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video,0,0,vw,vh);
-
-    const fontSize = 32;
-    ctx.font = `${fontSize}px sans-serif`;
+    ctx.font = `32px sans-serif`;
     ctx.fillStyle = "black";
     ctx.textBaseline = 'bottom';
     ctx.fillText(nowDatetime(), 20, vh - 20);
 
     canvas.toBlob(async function(blob){
-      const fileName = `vistoria_${Date.now()}.jpg`;
-      if(dirHandle){
-        const fileHandle = await dirHandle.getFileHandle(fileName,{create:true});
-        const writable = await fileHandle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        alert(`Foto ${fileName} salva automaticamente na pasta escolhida!`);
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-      }
+      fotoCount++;
+      const fileName = `vistoria_${timestampVistoria}_foto${fotoCount}.jpg`;
+      await uploadImgBB(blob, fileName);
     }, 'image/jpeg', 0.9);
+  });
+
+  finishBtn.addEventListener('click', ()=>{
+    if(fotosLinks.length === 0){
+      alert("Nenhuma foto enviada ainda!");
+      return;
+    }
+    let msg = "Vistoria finalizada! Links das fotos:\n\n";
+    fotosLinks.forEach((l,i)=> msg += `Foto ${i+1}: ${l}\n`);
+    alert(msg);
   });
 
   startCamera();
