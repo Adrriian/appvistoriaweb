@@ -1,21 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vistoria - Upload automático</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modal de Foto - Vistoria</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <h1>Vistoria - Upload automático</h1>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none"></canvas>
-    <button id="capture">📸 Capturar</button>
-    <button id="finish">✅ Terminar Vistoria</button>
-    <small>As fotos serão enviadas automaticamente para ImgBB.</small>
+
+<div class="container">
+  <!-- Modal inicial da foto -->
+  <div id="modal-foto" class="modal active">
+    <h2 id="titulo-foto">Frente</h2>
+    <img src="referencia.jpg" alt="Foto de referência" class="imagem-referencia">
+    <button id="ir-camera">Ir para câmera</button>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Div da câmera -->
+  <div id="camera-container" class="camera-container">
+    <video id="video" autoplay playsinline></video>
+    <button id="tirar-foto">Tirar Foto</button>
+  </div>
+
+  <!-- Modal resultado -->
+  <div id="modal-resultado" class="modal">
+    <h2>Resultado</h2>
+    <div class="fotos-comparacao">
+      <div class="foto-box">
+        <h3>Foto de referência</h3>
+        <img id="foto-referencia" src="referencia.jpg" alt="Referência">
+      </div>
+      <div class="foto-box">
+        <h3>Sua foto</h3>
+        <img id="foto-tirada" alt="Sua foto">
+      </div>
+    </div>
+    <div class="botoes-resultado">
+      <button id="refazer">Refazer Foto</button>
+      <button id="proxima">Próxima Foto</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
