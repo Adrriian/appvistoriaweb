@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vistoria - fotos com data/hora</title>
+  <title>Vistoria PWA - Fotos Automáticas</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     body{font-family:Arial, sans-serif;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px}
     .card{width:100%;max-width:720px;background:#0b1220;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,.6);text-align:center}
@@ -14,12 +15,11 @@
 </head>
 <body>
   <div class="card">
-    <h1>Vistoria - Captura de Foto</h1>
+    <h1>Vistoria - Captura Automática</h1>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" style="display:none"></canvas>
     <button id="capture">📸 Capturar</button>
-    <a id="download" style="display:none" download>⬇️ Baixar imagem</a>
-    <small>Ao capturar, a data e hora serão adicionadas automaticamente.</small>
+    <small>Ao capturar, a data/hora será adicionada e a foto será salva automaticamente na pasta escolhida.</small>
   </div>
 
 <script>
@@ -27,8 +27,8 @@
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const captureBtn = document.getElementById('capture');
-  const downloadBtn = document.getElementById('download');
   let stream;
+  let dirHandle;
 
   function nowDatetime(){
     const d = new Date();
@@ -37,25 +37,35 @@
   }
 
   async function startCamera(){
-    if (stream) {
-      stream.getTracks().forEach(t=>t.stop());
-      stream = null;
-    }
-    const constraints = {
-      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false
-    };
+    if (stream) stream.getTracks().forEach(t=>t.stop());
     try{
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}, audio: false});
       video.srcObject = stream;
       await video.play();
     }catch(err){
       alert('Erro ao acessar a câmera: '+err.message);
-      console.error(err);
     }
   }
 
-  captureBtn.addEventListener('click', ()=>{
+  // Solicita ao usuário a pasta onde salvar as fotos (apenas uma vez)
+  async function selectDirectory(){
+    if ('showDirectoryPicker' in window){
+      try{
+        dirHandle = await window.showDirectoryPicker();
+      }catch(err){
+        alert('Necessário selecionar uma pasta para salvar as fotos.');
+      }
+    } else {
+      alert('Seu navegador não suporta File System Access API. Fotos serão apenas baixadas manualmente.');
+    }
+  }
+
+  captureBtn.addEventListener('click', async ()=>{
+    if(!dirHandle){
+      await selectDirectory();
+      if(!dirHandle) return;
+    }
+
     const vw = video.videoWidth;
     const vh = video.videoHeight;
     canvas.width = vw;
@@ -63,21 +73,27 @@
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video,0,0,vw,vh);
 
-    // Marca d'água com data e hora no canto inferior esquerdo
     const fontSize = 32;
     ctx.font = `${fontSize}px sans-serif`;
     ctx.fillStyle = "black";
     ctx.textBaseline = 'bottom';
-    const text = nowDatetime();
-    const padding = 20;
-    ctx.fillText(text, padding, vh - padding);
+    ctx.fillText(nowDatetime(), 20, vh - 20);
 
-    // Criar download
-    canvas.toBlob(function(blob){
-      const url = URL.createObjectURL(blob);
-      downloadBtn.href = url;
-      downloadBtn.download = `vistoria_${Date.now()}.jpg`;
-      downloadBtn.style.display = 'inline-block';
+    canvas.toBlob(async function(blob){
+      const fileName = `vistoria_${Date.now()}.jpg`;
+      if(dirHandle){
+        const fileHandle = await dirHandle.getFileHandle(fileName,{create:true});
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        alert(`Foto ${fileName} salva automaticamente na pasta escolhida!`);
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+      }
     }, 'image/jpeg', 0.9);
   });
 
