@@ -1,0 +1,44 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #111827;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 16px;
+}
+
+.card {
+  width: 100%;
+  max-width: 720px;
+  background: #0b1220;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(2,6,23,.6);
+  text-align: center;
+}
+
+video, canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: #000;
+}
+
+button {
+  background: #2b6cb0;
+  border: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+small {
+  color: #9aa7b8;
+  display: block;
+  margin-top: 8px;
+}
