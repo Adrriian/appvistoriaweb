@@ -50,6 +50,48 @@ function mostrarModal(modal) {
   modal.classList.add("active");
   modalOverlay.style.display = "flex";
 }
+const fotosCarro = [
+  { nome: "Frente", ref: "img/carros/frente.jpeg" },
+  { nome: "Frente Lado 1", ref: "img/carros/frentelado1.jpeg" },
+  { nome: "Farol Dianteiro 1", ref: "img/carros/faroldianteiro1.jpeg" },
+  // ... restante das fotos do carro
+];
+
+const fotosMoto = [
+  { nome: "Frente", ref: "placeholder.png" },
+  { nome: "Traseira", ref: "placeholder.png" },
+  { nome: "Chassi", ref: "placeholder.png" }
+];
+
+const fotosCaminhao = [
+  { nome: "Frente", ref: "placeholder.png" },
+  { nome: "Traseira", ref: "placeholder.png" },
+  { nome: "Motor", ref: "placeholder.png" },
+  { nome: "Chassi", ref: "placeholder.png" }
+];
+
+// BOTÕES DE VEÍCULO
+veiculoBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const tipo = btn.getAttribute("data-veiculo");
+    if (tipo === "carro") fotosLista = fotosCarro;
+    else if (tipo === "moto") fotosLista = fotosMoto;
+    else if (tipo === "caminhao") fotosLista = fotosCaminhao;
+    else fotosLista = [];
+
+    if (fotosLista.length === 0) {
+      alert("Erro: fotos não definidas para este veículo.");
+      return;
+    }
+
+    // Limpa lista de fotos selecionadas caso tenha usado modo específico antes
+    fotosLinks = [];
+    indiceFoto = 0;
+
+    // Mostra o modal de modo de fotos
+    mostrarModal(modais.modo);
+  });
+});
 
 // Iniciar câmera
 async function startCamera() {
