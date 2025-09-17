@@ -109,13 +109,13 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    enviarVistoria();
+    finalizarVistoria();
   } else {
     mostrarFotoAtual();
   }
 }
 
-// ---------- UPLOAD IMG BB ----------
+// Upload ImgBB
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
@@ -131,8 +131,9 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// ---------- ENVIAR VISTORIA ----------
-async function enviarVistoria() {
+// Finalizar vistoria com animação e WhatsApp
+async function finalizarVistoria() {
+  // Criar modal de carregamento
   const loadingModal = document.createElement("div");
   loadingModal.style.position = "fixed";
   loadingModal.style.top = "50%";
@@ -149,6 +150,7 @@ async function enviarVistoria() {
   loadingModal.innerHTML = `<div style="width:50px;height:50px;border-radius:50%;border:5px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
   document.body.appendChild(loadingModal);
 
+  // Enviar fotos para ImgBB
   const urls = [];
   for (let i = 0; i < fotosLinks.length; i++) {
     const url = await enviarParaImgBB(fotosLinks[i]);
@@ -156,10 +158,13 @@ async function enviarVistoria() {
   }
 
   document.body.removeChild(loadingModal);
-  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
 
-  // Redireciona para WhatsApp
-  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
+  // Criar link para página de fotos
+  const fotosPageLink = `https://appvistoriaweb.netlify.app/fotossite.html?fotos=${encodeURIComponent(JSON.stringify(urls))}`;
+
+  // Redirecionar para WhatsApp
+  const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: ${fotosPageLink}`);
+  window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
 }
 
 // ---------- EVENTOS ----------
@@ -238,10 +243,14 @@ refazerBtn.addEventListener("click", () => {
 
 // Próxima foto / finalizar vistoria
 proximaBtn.addEventListener("click", () => {
-  avancarFoto();
+  if (indiceFoto === fotosLista.length - 1) {
+    finalizarVistoria();
+  } else {
+    avancarFoto();
+  }
 });
 
-// ---------- VERIFICAÇÃO DE ACESSO ANTERIOR ----------
+// ---------- ACESSO ANTERIOR ----------
 window.addEventListener("DOMContentLoaded", () => {
   const jaAcessou = localStorage.getItem("vistoriaAcessada");
   if (jaAcessou) {
