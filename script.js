@@ -24,21 +24,28 @@ const fotosCarro = [
 ];
 
 const fotosMoto = [
-  { nome: "frente", ref: "placeholder.png" },
-  { nome: "traseira", ref: "placeholder.png" },
-  { nome: "chassi", ref: "placeholder.png" }
+  { nome: "Frente", ref: "placeholder.png" },
+  { nome: "Traseira", ref: "placeholder.png" },
+  { nome: "Chassi", ref: "placeholder.png" }
 ];
 
 const fotosCaminhao = [
-  { nome: "frente", ref: "placeholder.png" },
-  { nome: "traseira", ref: "placeholder.png" },
-  { nome: "motor", ref: "placeholder.png" },
-  { nome: "chassi", ref: "placeholder.png" }
+  { nome: "Frente", ref: "placeholder.png" },
+  { nome: "Traseira", ref: "placeholder.png" },
+  { nome: "Motor", ref: "placeholder.png" },
+  { nome: "Chassi", ref: "placeholder.png" }
 ];
 
+// ---------- VARIÁVEIS ----------
 let fotosLista = [];
 let fotosLinks = [];
 let indiceFoto = 0;
+
+// ---------- PARÂMETROS DA URL ----------
+const urlParams = new URLSearchParams(window.location.search);
+const IMGBB_API = urlParams.get("api") || "https://api.imgbb.com/1/upload";
+const IMGBB_KEY = urlParams.get("key") || "SUA_API_KEY_PADRAO";
+const WHATSAPP = urlParams.get("whats") || "47984910058";
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -71,13 +78,15 @@ const proximaBtn = document.getElementById("proxima");
 const fotoReferenciaResultado = document.getElementById("foto-referencia");
 
 // ---------- FUNÇÕES ----------
+
+// Mostrar modal
 function mostrarModal(modal) {
   Object.values(modais).forEach(m => m.classList.remove("active"));
   modal.classList.add("active");
   modalOverlay.style.display = "flex";
 }
 
-// Iniciar câmera (somente quando usuário clicar)
+// Iniciar câmera
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -88,7 +97,7 @@ async function startCamera() {
   }
 }
 
-// Exibir a foto atual (título + referência)
+// Mostrar foto atual
 function mostrarFotoAtual() {
   const fotoAtual = fotosLista[indiceFoto];
   tituloFoto.textContent = fotoAtual.nome;
@@ -96,24 +105,55 @@ function mostrarFotoAtual() {
   mostrarModal(modais.foto);
 }
 
-// Avançar para próxima foto
+// Avançar foto
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    alert("Vistoria finalizada!");
-    modalOverlay.style.display = "flex";
-    mostrarModal(modais.instrucoes);
+    enviarVistoria();
   } else {
     mostrarFotoAtual();
   }
 }
 
+// ---------- UPLOAD IMG BB ----------
+async function enviarParaImgBB(dataUrl) {
+  const formData = new FormData();
+  formData.append("image", dataUrl.split(",")[1]);
+  formData.append("key", IMGBB_KEY);
+
+  try {
+    const response = await fetch(IMGBB_API, {
+      method: "POST",
+      body: formData
+    });
+    const resultado = await response.json();
+    return resultado.data.url;
+  } catch (err) {
+    console.error("Erro ao enviar para ImgBB:", err);
+    return null;
+  }
+}
+
+// Enviar todas as fotos e redirecionar
+async function enviarVistoria() {
+  const urls = [];
+  for (let i = 0; i < fotosLinks.length; i++) {
+    const url = await enviarParaImgBB(fotosLinks[i]);
+    if (url) urls.push(url);
+  }
+  console.log("Fotos enviadas:", urls);
+  alert("Vistoria finalizada e fotos enviadas!");
+
+  // Redireciona para WhatsApp
+  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
+}
+
 // ---------- EVENTOS ----------
 
-// Botão iniciar vistoria → pede permissão de câmera
+// Iniciar vistoria
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
-  startCamera(); // pede permissão só aqui
+  startCamera();
 });
 
 // Escolher veículo
@@ -127,14 +167,14 @@ veiculoBtns.forEach(btn => {
   });
 });
 
-// Modo "todas as fotos"
+// Todas as fotos
 btnTodas.addEventListener("click", () => {
   indiceFoto = 0;
   fotosLinks = [];
   mostrarFotoAtual();
 });
 
-// Modo "foto específica"
+// Foto específica
 btnEspecifica.addEventListener("click", () => {
   listaFotosEspecificas.innerHTML = "";
   fotosLista.forEach((f, i) => {
@@ -152,8 +192,8 @@ btnEspecifica.addEventListener("click", () => {
 
 // Ir para câmera
 irCameraBtn.addEventListener("click", () => {
-  modalOverlay.style.display = "none"; // fecha modal
-  cameraContainer.style.display = "flex"; // mostra câmera
+  modalOverlay.style.display = "none";
+  cameraContainer.style.display = "flex";
 });
 
 // Tirar foto
@@ -163,9 +203,10 @@ tirarFotoBtn.addEventListener("click", () => {
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL("image/jpeg");
-  fotoTiradaImg.src = dataUrl;
 
-  // Mostra a referência correta no resultado
+  fotoTiradaImg.src = dataUrl;
+  fotosLinks.push(dataUrl);
+
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
@@ -184,7 +225,7 @@ proximaBtn.addEventListener("click", () => {
   avancarFoto();
 });
 
-// Quando a página carregar, já abre o modal de instruções
+// Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.instrucoes);
