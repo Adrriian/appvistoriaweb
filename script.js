@@ -241,7 +241,47 @@ refazerBtn.addEventListener("click", () => {
   cameraContainer.style.display = "flex";
 });
 
-// Próxima foto / finalizar vistoria
+// ---------- FUNÇÃO FINALIZAR VISTORIA ----------
+async function finalizarVistoria() {
+  // Fecha o modal resultado
+  modalOverlay.style.display = "none";
+
+  // Cria modal de carregamento
+  const modalCarregando = document.createElement("div");
+  modalCarregando.id = "modal-carregando";
+  modalCarregando.style.position = "fixed";
+  modalCarregando.style.top = "50%";
+  modalCarregando.style.left = "50%";
+  modalCarregando.style.transform = "translate(-50%, -50%)";
+  modalCarregando.style.width = "150px";
+  modalCarregando.style.height = "150px";
+  modalCarregando.style.background = "#fff";
+  modalCarregando.style.display = "flex";
+  modalCarregando.style.alignItems = "center";
+  modalCarregando.style.justifyContent = "center";
+  modalCarregando.style.borderRadius = "10px";
+  modalCarregando.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+  modalCarregando.innerHTML = `
+    <div style="width:60px;height:60px;border-radius:50%;border:6px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>
+  `;
+  document.body.appendChild(modalCarregando);
+
+  // Faz upload das fotos para o ImgBB
+  const urls = [];
+  for (let i = 0; i < fotosLinks.length; i++) {
+    const url = await enviarParaImgBB(fotosLinks[i]);
+    if (url) urls.push(url);
+  }
+
+  // Remove modal de carregamento
+  document.body.removeChild(modalCarregando);
+
+  // Redireciona para WhatsApp com link fixo do site de fotos
+  const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: https://appvistoriaweb.netlify.app/fotossite`);
+  window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
+}
+
+// ---------- ALTERAÇÃO NO BOTÃO "PRÓXIMA / FINALIZAR FOTO" ----------
 proximaBtn.addEventListener("click", () => {
   if (indiceFoto === fotosLista.length - 1) {
     finalizarVistoria();
@@ -249,6 +289,7 @@ proximaBtn.addEventListener("click", () => {
     avancarFoto();
   }
 });
+
 
 // ---------- ACESSO ANTERIOR ----------
 window.addEventListener("DOMContentLoaded", () => {
