@@ -140,12 +140,11 @@ async function enviarVistoria() {
     const url = await enviarParaImgBB(fotosLinks[i]);
     if (url) urls.push(url);
   }
-  console.log("Fotos enviadas:", urls);
 
-  alert("✅ Vistoria concluída! Você será redirecionado para o WhatsApp.");
+  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
 
   // Redireciona para WhatsApp
-  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!%0AFotos:%0A${encodeURIComponent(urls.join("\n"))}`;
+  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
 }
 
 // ---------- EVENTOS ----------
@@ -154,6 +153,7 @@ async function enviarVistoria() {
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
   startCamera();
+  localStorage.setItem("vistoriaAcessada", "true");
 });
 
 // Escolher veículo
@@ -204,19 +204,15 @@ tirarFotoBtn.addEventListener("click", () => {
   canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL("image/jpeg");
 
-  fotoTiradaImg.src = dataUrl;
-
-  // Garante que não duplica quando refaz
+  // Salva ou substitui a foto atual
   fotosLinks[indiceFoto] = dataUrl;
 
-  const fotoAtual = fotosLista[indiceFoto];
-  fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
+  fotoTiradaImg.src = dataUrl;
+  fotoReferenciaResultado.src = fotosLista[indiceFoto].ref || "placeholder.png";
 
-  if (indiceFoto === fotosLista.length - 1) {
-    proximaBtn.textContent = "Finalizar Vistoria";
-  } else {
-    proximaBtn.textContent = "Próxima Foto";
-  }
+  proximaBtn.textContent = (indiceFoto === fotosLista.length - 1)
+    ? "Finalizar Vistoria"
+    : "Próxima Foto";
 
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
@@ -224,9 +220,6 @@ tirarFotoBtn.addEventListener("click", () => {
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
-  // Remove a última tentativa antes de refazer
-  fotosLinks[indiceFoto] = null;
-
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
@@ -236,8 +229,15 @@ proximaBtn.addEventListener("click", () => {
   avancarFoto();
 });
 
-// Ao carregar
+// Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
-  modalOverlay.style.display = "flex";
-  mostrarModal(modais.instrucoes);
+  if (localStorage.getItem("vistoriaAcessada")) {
+    // Se já acessou antes, vai direto para a câmera
+    startCamera();
+    modalOverlay.style.display = "none";
+    cameraContainer.style.display = "flex";
+  } else {
+    modalOverlay.style.display = "flex";
+    mostrarModal(modais.instrucoes);
+  }
 });
