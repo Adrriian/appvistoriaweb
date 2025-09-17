@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galeria de Fotos - Vistoria</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f5f5f5;
+    margin: 0;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  #baixar-todas {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 12px 24px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  #baixar-todas:hover {
+    background-color: #218838;
+  }
+
+  #galeria {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    justify-items: center;
+  }
+
+  #galeria img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  /* Responsivo */
+  @media (max-width: 800px) {
+    #galeria {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 500px) {
+    #galeria {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Galeria de Fotos da Vistoria</h1>
+<button id="baixar-todas">Baixar todas as fotos</button>
+<div id="galeria"></div>
+
+<!-- JSZip e FileSaver -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script>
+  // Pegar URLs das fotos da query string
+  const params = new URLSearchParams(window.location.search);
+  const fotos = JSON.parse(params.get('fotos') || '[]');
+
+  const galeria = document.getElementById('galeria');
+
+  // Criar imagens na galeria
+  fotos.forEach((url, index) => {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = `Foto ${index + 1}`;
+    galeria.appendChild(img);
+  });
+
+  // Botão baixar todas
+  const btnDownload = document.getElementById('baixar-todas');
+  btnDownload.addEventListener('click', async () => {
+    if (fotos.length === 0) {
+      alert('Nenhuma foto para baixar.');
+      return;
+    }
+    const zip = new JSZip();
+    for (let i = 0; i < fotos.length; i++) {
+      try {
+        const res = await fetch(fotos[i]);
+        const blob = await res.blob();
+        zip.file(`foto_${i + 1}.jpg`, blob);
+      } catch (err) {
+        console.error(`Erro ao baixar a foto ${i + 1}:`, err);
+      }
+    }
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'vistoria.zip');
+  });
+</script>
+
+</body>
+</html>
