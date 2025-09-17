@@ -131,40 +131,39 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// ---------- FINALIZAR VISTORIA ----------
+// Finalizar vistoria com animação e WhatsApp
 async function finalizarVistoria() {
-  // Fecha o modal de resultado
-  modalOverlay.style.display = "none";
+  // Criar modal de carregamento
+  const loadingModal = document.createElement("div");
+  loadingModal.style.position = "fixed";
+  loadingModal.style.top = "50%";
+  loadingModal.style.left = "50%";
+  loadingModal.style.transform = "translate(-50%, -50%)";
+  loadingModal.style.width = "120px";
+  loadingModal.style.height = "120px";
+  loadingModal.style.borderRadius = "10px";
+  loadingModal.style.background = "#fff";
+  loadingModal.style.display = "flex";
+  loadingModal.style.alignItems = "center";
+  loadingModal.style.justifyContent = "center";
+  loadingModal.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+  loadingModal.innerHTML = `<div style="width:50px;height:50px;border-radius:50%;border:5px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
+  document.body.appendChild(loadingModal);
 
-  // Modal de carregamento
-  const modalCarregando = document.createElement("div");
-  modalCarregando.id = "modal-carregando";
-  modalCarregando.style.position = "fixed";
-  modalCarregando.style.top = "50%";
-  modalCarregando.style.left = "50%";
-  modalCarregando.style.transform = "translate(-50%, -50%)";
-  modalCarregando.style.width = "150px";
-  modalCarregando.style.height = "150px";
-  modalCarregando.style.background = "#fff";
-  modalCarregando.style.display = "flex";
-  modalCarregando.style.alignItems = "center";
-  modalCarregando.style.justifyContent = "center";
-  modalCarregando.style.borderRadius = "10px";
-  modalCarregando.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
-  modalCarregando.innerHTML = `<div style="width:60px;height:60px;border-radius:50%;border:6px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
-  document.body.appendChild(modalCarregando);
-
-  // Enviar fotos
+  // Enviar fotos para ImgBB
   const urls = [];
   for (let i = 0; i < fotosLinks.length; i++) {
     const url = await enviarParaImgBB(fotosLinks[i]);
     if (url) urls.push(url);
   }
 
-  document.body.removeChild(modalCarregando);
+  document.body.removeChild(loadingModal);
 
-  // Redireciona para WhatsApp com link fixo do site de fotos
-  const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: https://appvistoriaweb.netlify.app/fotossite`);
+  // Criar link para página de fotos
+  const fotosPageLink = `https://appvistoriaweb.netlify.app/fotossite.html?fotos=${encodeURIComponent(JSON.stringify(urls))}`;
+
+  // Redirecionar para WhatsApp
+  const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: ${fotosPageLink}`);
   window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
 }
 
@@ -173,6 +172,7 @@ async function finalizarVistoria() {
 // Iniciar vistoria
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
+  startCamera();
 });
 
 // Escolher veículo
@@ -212,7 +212,6 @@ btnEspecifica.addEventListener("click", () => {
 irCameraBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
-  startCamera();
 });
 
 // Tirar foto
@@ -231,6 +230,7 @@ tirarFotoBtn.addEventListener("click", () => {
 
   proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
+  modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
 
@@ -239,7 +239,6 @@ refazerBtn.addEventListener("click", () => {
   if (fotosLinks.length > 0) fotosLinks.pop();
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
-  startCamera();
 });
 
 // Próxima foto / finalizar vistoria
@@ -255,6 +254,7 @@ proximaBtn.addEventListener("click", () => {
 window.addEventListener("DOMContentLoaded", () => {
   const jaAcessou = localStorage.getItem("vistoriaAcessada");
   if (jaAcessou) {
+    startCamera();
     mostrarModal(modais.instrucoes);
   } else {
     localStorage.setItem("vistoriaAcessada", "true");
