@@ -86,7 +86,7 @@ function mostrarModal(modal) {
   modalOverlay.style.display = "flex";
 }
 
-// Iniciar câmera
+// Iniciar câmera com reinicialização
 async function startCamera() {
   try {
     // Para qualquer stream existente
@@ -101,7 +101,6 @@ async function startCamera() {
     alert("Erro ao acessar a câmera: " + err.message);
   }
 }
-
 
 // Mostrar foto atual
 function mostrarFotoAtual() {
@@ -217,6 +216,13 @@ tirarFotoBtn.addEventListener("click", () => {
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
+  // Atualiza texto do botão dependendo se é a última foto
+  if (indiceFoto === fotosLista.length - 1) {
+    proximaBtn.textContent = "Finalizar Vistoria";
+  } else {
+    proximaBtn.textContent = "Próxima Foto";
+  }
+
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
@@ -227,32 +233,10 @@ refazerBtn.addEventListener("click", () => {
   cameraContainer.style.display = "flex";
 });
 
-// Próxima foto
-tirarFotoBtn.addEventListener("click", () => {
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-  const dataUrl = canvas.toDataURL("image/jpeg");
-
-  fotoTiradaImg.src = dataUrl;
-  fotosLinks.push(dataUrl);
-
-  const fotoAtual = fotosLista[indiceFoto];
-  fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
-
-  // Atualiza texto do botão dependendo se é a última foto
- if (indiceFoto >= fotosLista.length) {
-  enviarVistoria(); // aqui redireciona para WhatsApp
-} else {
-  mostrarFotoAtual();
-}
-
-
-  modalOverlay.style.display = "flex";
-  mostrarModal(modais.resultado);
+// Próxima foto / finalizar vistoria
+proximaBtn.addEventListener("click", () => {
+  avancarFoto();
 });
-
 
 // Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
