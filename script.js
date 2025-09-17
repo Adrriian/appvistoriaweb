@@ -242,11 +242,12 @@ tirarFotoBtn.addEventListener("click", () => {
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
   // Atualiza texto do botão dependendo se é a última foto
-  if (indiceFoto === fotosLista.length - 1) {
-    proximaBtn.textContent = "Finalizar Vistoria";
-  } else {
-    proximaBtn.textContent = "Próxima Foto";
-  }
+ if (indiceFoto >= fotosLista.length) {
+  enviarVistoria(); // aqui redireciona para WhatsApp
+} else {
+  mostrarFotoAtual();
+}
+
 
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
