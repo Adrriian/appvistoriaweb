@@ -228,9 +228,30 @@ refazerBtn.addEventListener("click", () => {
 });
 
 // Próxima foto
-proximaBtn.addEventListener("click", () => {
-  avancarFoto();
+tirarFotoBtn.addEventListener("click", () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg");
+
+  fotoTiradaImg.src = dataUrl;
+  fotosLinks.push(dataUrl);
+
+  const fotoAtual = fotosLista[indiceFoto];
+  fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
+
+  // Atualiza texto do botão dependendo se é a última foto
+  if (indiceFoto === fotosLista.length - 1) {
+    proximaBtn.textContent = "Finalizar Vistoria";
+  } else {
+    proximaBtn.textContent = "Próxima Foto";
+  }
+
+  modalOverlay.style.display = "flex";
+  mostrarModal(modais.resultado);
 });
+
 
 // Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
