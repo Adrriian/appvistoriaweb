@@ -37,14 +37,53 @@ body {
   box-sizing: border-box;
   display: none;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content:flex-start;
   color: #000;
 }
 
 .modal-overlay .modal-content.active {
   display: flex;
 }
+.modal-instrucoes{
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+.img-instrucoes{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
 
+}
+.img-details p{
+  font-weight: bold;
+  color: green;
+}
+.img-details2 p{
+  font-weight: bold;
+  color: red;
+}
+.img-details img,
+.img-details2 img{
+  width: 200px;
+  height: 200px;
+}
+.selectcar,
+.selectop,
+.result{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.opcoes-veiculo,
+.opcoes2{
+  display: flex;
+  flex-direction: column;
+}
+.foto-box img{
+  width: 200px;
+  height: 200px;
+}
 button {
   padding: 10px 16px;
   background: var(--botao);
@@ -110,11 +149,16 @@ button {
 /* RESPONSIVO */
 @media (max-width: 768px) {
   .fotos-comparacao, .img-instrucoes {
-    flex-direction: column;
-    align-items: center;
+    
   }
 }
-
+@media (max-width: 660px) {
+.img-details img,
+.img-details2 img{
+  width: 100px;
+  height: 100px;
+}
+}
 @media (max-width: 480px) {
   button {
     width: 90%;
@@ -123,4 +167,11 @@ button {
     width: 90%;
     height: 90%;
   }
+}
+@media (max-width: 320px) {
+.img-details img,
+.img-details2 img{
+  width: 60px;
+  height: 60px;
+}
 }
