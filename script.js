@@ -1,13 +1,40 @@
 // ---------- LISTAS DE FOTOS ----------
 const fotosCarro = [
-  "frente","frente lado 1","frente lado 2","farol 1","farol 2","espelho 1","espelho 2",
-  "pneu dianteiro 1","pneu dianteiro 2","traseira","traseira lado 1","traseira lado 2",
-  "farol traseiro 1","farol traseiro 2","pneu traseiro 1","pneu traseiro 2",
-  "porta aberta pegando a marcha e volante","kilometragem com a chave virada",
-  "parabrisa","motor","chassi"
+  { nome: "Frente", ref: "img/carros/frente.jpeg" },
+  { nome: "Frente Lado 1", ref: "img/carros/frentelado1.jpeg" },
+  { nome: "Farol Dianteiro 1", ref: "img/carros/faroldianteiro1.jpeg" },
+  { nome: "Pneu Dianteiro 1", ref: "img/carros/pneudianteiro1.jpeg" },
+  { nome: "Espelho Dianteiro 1", ref: "img/carros/espelho1.jpeg" },
+  { nome: "Frente Lado 2", ref: "img/carros/frentelado2.jpeg" },
+  { nome: "Farol Dianteiro 2", ref: "img/carros/faroldianteiro2.jpeg" },
+  { nome: "Pneu Dianteiro 2", ref: "img/carros/pneudianteiro2.jpeg" },
+  { nome: "Espelho Dianteiro 2", ref: "img/carros/espelho2.jpeg" },
+  { nome: "Traseira", ref: "img/carros/traseira.jpeg" },
+  { nome: "Traseira lado 1", ref: "img/carros/traseiralado1.jpeg" },
+  { nome: "Farol Traseiro 1", ref: "img/carros/faroltraseira1.jpeg" },
+  { nome: "Pneu Traseiro 1", ref: "img/carros/pneutraseiro1.jpeg" },
+  { nome: "Traseira lado 2", ref: "img/carros/traseiralado2.jpeg" },
+  { nome: "Farol Traseiro 2", ref: "img/carros/faroltraseira2.jpeg" },
+  { nome: "Pneu Traseiro 2", ref: "img/carros/pneutraseiro2.jpeg" },
+  { nome: "Porta Aberta", ref: "img/carros/portaaberta.jpeg" },
+  { nome: "Kilometragem com chave virada", ref: "img/carros/kilometragem.jpeg" },
+  { nome: "Parabrisa", ref: "img/carros/parabrisa.jpeg" },
+  { nome: "Motor", ref: "img/carros/Motor.jpeg" },
+  { nome: "Chassi", ref: "img/carros/chassi.jpeg" },
 ];
-const fotosMoto = ["frente", "traseira", "chassi"]; // exemplo simplificado
-const fotosCaminhao = ["frente", "traseira", "motor", "chassi"]; // exemplo simplificado
+
+const fotosMoto = [
+  { nome: "frente", ref: "placeholder.png" },
+  { nome: "traseira", ref: "placeholder.png" },
+  { nome: "chassi", ref: "placeholder.png" }
+];
+
+const fotosCaminhao = [
+  { nome: "frente", ref: "placeholder.png" },
+  { nome: "traseira", ref: "placeholder.png" },
+  { nome: "motor", ref: "placeholder.png" },
+  { nome: "chassi", ref: "placeholder.png" }
+];
 
 let fotosLista = [];
 let fotosLinks = [];
@@ -41,78 +68,82 @@ const tirarFotoBtn = document.getElementById("tirar-foto");
 const fotoTiradaImg = document.getElementById("foto-tirada");
 const refazerBtn = document.getElementById("refazer");
 const proximaBtn = document.getElementById("proxima");
+const fotoReferenciaResultado = document.getElementById("foto-referencia");
 
 // ---------- FUNÇÕES ----------
 function mostrarModal(modal) {
-  Object.values(modais).forEach(m=>m.classList.remove("active"));
+  Object.values(modais).forEach(m => m.classList.remove("active"));
   modal.classList.add("active");
-  modalOverlay.style.display="flex";
+  modalOverlay.style.display = "flex";
 }
 
 // Iniciar câmera (somente quando usuário clicar)
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     video.srcObject = stream;
     await video.play();
-  } catch(err) {
-    alert("Erro ao acessar a câmera: "+err.message);
+  } catch (err) {
+    alert("Erro ao acessar a câmera: " + err.message);
   }
+}
+
+// Exibir a foto atual (título + referência)
+function mostrarFotoAtual() {
+  const fotoAtual = fotosLista[indiceFoto];
+  tituloFoto.textContent = fotoAtual.nome;
+  referenciaImg.src = fotoAtual.ref || "placeholder.png";
+  mostrarModal(modais.foto);
 }
 
 // Avançar para próxima foto
 function avancarFoto() {
   indiceFoto++;
-  if(indiceFoto >= fotosLista.length){
+  if (indiceFoto >= fotosLista.length) {
     alert("Vistoria finalizada!");
-    // aqui no futuro: enviar para WhatsApp
-    modalOverlay.style.display="flex";
-    mostrarModal(modais.instrucoes); // volta para instruções por enquanto
+    modalOverlay.style.display = "flex";
+    mostrarModal(modais.instrucoes);
   } else {
-    tituloFoto.textContent = fotosLista[indiceFoto];
-    referenciaImg.src = "placeholder.png";
-    mostrarModal(modais.foto);
+    mostrarFotoAtual();
   }
 }
 
 // ---------- EVENTOS ----------
 
 // Botão iniciar vistoria → pede permissão de câmera
-btnFazerVistoria.addEventListener("click", ()=> {
+btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
   startCamera(); // pede permissão só aqui
 });
 
 // Escolher veículo
-veiculoBtns.forEach(btn=>{
-  btn.addEventListener("click", ()=>{
+veiculoBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
     const tipo = btn.getAttribute("data-veiculo");
-    fotosLista = tipo==="carro"? fotosCarro : tipo==="moto"? fotosMoto : fotosCaminhao;
+    fotosLista =
+      tipo === "carro" ? fotosCarro :
+      tipo === "moto" ? fotosMoto : fotosCaminhao;
     mostrarModal(modais.modo);
   });
 });
 
 // Modo "todas as fotos"
-btnTodas.addEventListener("click", ()=>{
+btnTodas.addEventListener("click", () => {
   indiceFoto = 0;
   fotosLinks = [];
-  tituloFoto.textContent = fotosLista[indiceFoto];
-  referenciaImg.src = "placeholder.png";
-  mostrarModal(modais.foto);
+  mostrarFotoAtual();
 });
 
 // Modo "foto específica"
-btnEspecifica.addEventListener("click", ()=>{
+btnEspecifica.addEventListener("click", () => {
   listaFotosEspecificas.innerHTML = "";
-  fotosLista.forEach(f=>{
+  fotosLista.forEach((f, i) => {
     const b = document.createElement("button");
-    b.textContent=f;
-    b.addEventListener("click", ()=>{
-      indiceFoto = fotosLista.indexOf(f);
-      fotosLinks=[];
-      tituloFoto.textContent=f;
-      referenciaImg.src="placeholder.png";
-      mostrarModal(modais.foto);
+    b.textContent = f.nome;
+    b.addEventListener("click", () => {
+      indiceFoto = i;
+      fotosLinks = [];
+      mostrarFotoAtual();
     });
     listaFotosEspecificas.appendChild(b);
   });
@@ -120,36 +151,39 @@ btnEspecifica.addEventListener("click", ()=>{
 });
 
 // Ir para câmera
-irCameraBtn.addEventListener("click", ()=>{
-  modalOverlay.style.display="none"; // fecha modal
-  cameraContainer.style.display="flex"; // mostra câmera
+irCameraBtn.addEventListener("click", () => {
+  modalOverlay.style.display = "none"; // fecha modal
+  cameraContainer.style.display = "flex"; // mostra câmera
 });
 
 // Tirar foto
-tirarFotoBtn.addEventListener("click", ()=>{
-  // Captura foto
+tirarFotoBtn.addEventListener("click", () => {
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
+  canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL("image/jpeg");
   fotoTiradaImg.src = dataUrl;
 
-  // Mostra modal de resultado
-  modalOverlay.style.display="flex";
+  // Mostra a referência correta no resultado
+  const fotoAtual = fotosLista[indiceFoto];
+  fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
+
+  modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
 
 // Refazer foto
-refazerBtn.addEventListener("click", ()=>{
-  modalOverlay.style.display="none";
-  cameraContainer.style.display="flex";
+refazerBtn.addEventListener("click", () => {
+  modalOverlay.style.display = "none";
+  cameraContainer.style.display = "flex";
 });
 
 // Próxima foto
-proximaBtn.addEventListener("click", ()=>{
+proximaBtn.addEventListener("click", () => {
   avancarFoto();
 });
+
 // Quando a página carregar, já abre o modal de instruções
 window.addEventListener("DOMContentLoaded", () => {
   modalOverlay.style.display = "flex";
