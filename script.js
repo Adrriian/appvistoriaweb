@@ -131,9 +131,9 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// Finalizar vistoria com modal carregando e redirecionamento WhatsApp
+// ---------- FINALIZAR VISTORIA ----------
 async function finalizarVistoria() {
-  // Fecha modal resultado
+  // Fecha o modal de resultado
   modalOverlay.style.display = "none";
 
   // Modal de carregamento
@@ -154,17 +154,16 @@ async function finalizarVistoria() {
   modalCarregando.innerHTML = `<div style="width:60px;height:60px;border-radius:50%;border:6px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
   document.body.appendChild(modalCarregando);
 
-  // Enviar fotos para ImgBB
+  // Enviar fotos
   const urls = [];
   for (let i = 0; i < fotosLinks.length; i++) {
     const url = await enviarParaImgBB(fotosLinks[i]);
     if (url) urls.push(url);
   }
 
-  // Remove modal de carregamento
   document.body.removeChild(modalCarregando);
 
-  // Redireciona para WhatsApp com link fixo
+  // Redireciona para WhatsApp com link fixo do site de fotos
   const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: https://appvistoriaweb.netlify.app/fotossite`);
   window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
 }
@@ -174,7 +173,6 @@ async function finalizarVistoria() {
 // Iniciar vistoria
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
-  startCamera();
 });
 
 // Escolher veículo
@@ -214,6 +212,7 @@ btnEspecifica.addEventListener("click", () => {
 irCameraBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
+  startCamera();
 });
 
 // Tirar foto
@@ -232,7 +231,6 @@ tirarFotoBtn.addEventListener("click", () => {
 
   proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
-  modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
 
@@ -241,9 +239,10 @@ refazerBtn.addEventListener("click", () => {
   if (fotosLinks.length > 0) fotosLinks.pop();
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
+  startCamera();
 });
 
-// Próxima / Finalizar
+// Próxima foto / finalizar vistoria
 proximaBtn.addEventListener("click", () => {
   if (indiceFoto === fotosLista.length - 1) {
     finalizarVistoria();
@@ -256,7 +255,6 @@ proximaBtn.addEventListener("click", () => {
 window.addEventListener("DOMContentLoaded", () => {
   const jaAcessou = localStorage.getItem("vistoriaAcessada");
   if (jaAcessou) {
-    startCamera();
     mostrarModal(modais.instrucoes);
   } else {
     localStorage.setItem("vistoriaAcessada", "true");
