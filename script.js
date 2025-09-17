@@ -1,8 +1,3 @@
-// ---------- CONFIGURAÇÃO ----------
-const IMGBB_API = "https://api.imgbb.com/1/upload";
-const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
-const WHATSAPP = "47984910058"; // seu WhatsApp
-
 // ---------- LISTAS DE FOTOS ----------
 const fotosCarro = [
   { nome: "Frente", ref: "img/carros/frente.jpeg" },
@@ -44,8 +39,12 @@ const fotosCaminhao = [
 // ---------- VARIÁVEIS ----------
 let fotosLista = [];
 let fotosLinks = [];
-let fotosUrlsImgBB = [];
 let indiceFoto = 0;
+
+// ---------- CONFIGURAÇÃO DO SITE ----------
+const IMGBB_API = "https://api.imgbb.com/1/upload";
+const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
+const WHATSAPP = "47984910058"; // seu WhatsApp
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -76,9 +75,6 @@ const fotoTiradaImg = document.getElementById("foto-tirada");
 const refazerBtn = document.getElementById("refazer");
 const proximaBtn = document.getElementById("proxima");
 const fotoReferenciaResultado = document.getElementById("foto-referencia");
-const downloadAllBtn = document.createElement("button");
-downloadAllBtn.textContent = "Baixar todas as fotos";
-downloadAllBtn.style.margin = "8px";
 
 // ---------- FUNÇÕES ----------
 
@@ -92,8 +88,10 @@ function mostrarModal(modal) {
 // Iniciar câmera
 async function startCamera() {
   try {
-    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     video.srcObject = stream;
     await video.play();
   } catch (err) {
@@ -113,21 +111,21 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    enviarVistoria(); // última foto → enviar todas
+    enviarVistoria();
   } else {
     mostrarFotoAtual();
   }
 }
 
-// ---------- UPLOAD PARA IMGBB ----------
+// ---------- UPLOAD IMG BB ----------
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
   formData.append("key", IMGBB_KEY);
 
   try {
-    const res = await fetch(IMGBB_API, { method: "POST", body: formData });
-    const resultado = await res.json();
+    const response = await fetch(IMGBB_API, { method: "POST", body: formData });
+    const resultado = await response.json();
     return resultado.data.url;
   } catch (err) {
     console.error("Erro ao enviar para ImgBB:", err);
@@ -135,58 +133,19 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// ---------- ENVIAR TODAS AS FOTOS ----------
+// Enviar todas as fotos e redirecionar
 async function enviarVistoria() {
-  fotosUrlsImgBB = [];
+  const urls = [];
   for (let i = 0; i < fotosLinks.length; i++) {
     const url = await enviarParaImgBB(fotosLinks[i]);
-    if (url) fotosUrlsImgBB.push(url);
+    if (url) urls.push(url);
   }
+  console.log("Fotos enviadas:", urls);
 
-  // Criar lista de links na modal
-  const divLinks = document.createElement("div");
-  divLinks.style.display = "flex";
-  divLinks.style.flexDirection = "column";
-  divLinks.style.alignItems = "center";
-  divLinks.style.marginTop = "16px";
+  alert("✅ Vistoria concluída! Você será redirecionado para o WhatsApp.");
 
-  fotosUrlsImgBB.forEach(url => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.textContent = url;
-    a.target = "_blank";
-    a.style.margin = "4px";
-    divLinks.appendChild(a);
-  });
-
-  // Adiciona botão de download
-  downloadAllBtn.onclick = () => baixarTodasFotos();
-  divLinks.appendChild(downloadAllBtn);
-
-  const resultDiv = modais.resultado.querySelector(".result");
-  resultDiv.innerHTML = ""; // limpar antes
-  resultDiv.appendChild(divLinks);
-
-  mostrarModal(modais.resultado);
-
-  alert("✅ Vistoria finalizada com sucesso!");
-
-  // Mensagem para WhatsApp
-  const msg = encodeURIComponent("Olá, terminei a vistoria! Aqui estão as fotos: " + fotosUrlsImgBB.join("\n"));
-  const linkWhats = `https://wa.me/${WHATSAPP}?text=${msg}`;
-  window.open(linkWhats, "_blank");
-}
-
-// ---------- BAIXAR TODAS AS FOTOS EM ZIP ----------
-async function baixarTodasFotos() {
-  const zip = new JSZip();
-  for (let i = 0; i < fotosUrlsImgBB.length; i++) {
-    const res = await fetch(fotosUrlsImgBB[i]);
-    const blob = await res.blob();
-    zip.file(`foto_${i + 1}.jpg`, blob);
-  }
-  const content = await zip.generateAsync({ type: "blob" });
-  saveAs(content, "vistoria.zip");
+  // Redireciona para WhatsApp
+  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!%0AFotos:%0A${encodeURIComponent(urls.join("\n"))}`;
 }
 
 // ---------- EVENTOS ----------
@@ -235,7 +194,6 @@ btnEspecifica.addEventListener("click", () => {
 irCameraBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
-  startCamera();
 });
 
 // Tirar foto
@@ -247,13 +205,18 @@ tirarFotoBtn.addEventListener("click", () => {
   const dataUrl = canvas.toDataURL("image/jpeg");
 
   fotoTiradaImg.src = dataUrl;
-  fotosLinks.push(dataUrl);
+
+  // Garante que não duplica quando refaz
+  fotosLinks[indiceFoto] = dataUrl;
 
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
-  // Atualiza texto do botão
-  proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
+  if (indiceFoto === fotosLista.length - 1) {
+    proximaBtn.textContent = "Finalizar Vistoria";
+  } else {
+    proximaBtn.textContent = "Próxima Foto";
+  }
 
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
@@ -261,21 +224,19 @@ tirarFotoBtn.addEventListener("click", () => {
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
+  // Remove a última tentativa antes de refazer
+  fotosLinks[indiceFoto] = null;
+
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
-  startCamera();
 });
 
-// Próxima foto / finalizar
+// Próxima foto / finalizar vistoria
 proximaBtn.addEventListener("click", () => {
-  if (indiceFoto === fotosLista.length - 1) {
-    enviarVistoria(); // Finaliza vistoria
-  } else {
-    avancarFoto(); // Vai para a próxima
-  }
+  avancarFoto();
 });
 
-// Carregar modal de instruções ao abrir página
+// Ao carregar
 window.addEventListener("DOMContentLoaded", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.instrucoes);
