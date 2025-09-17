@@ -14,7 +14,7 @@ const fotosCarro = [
   { nome: "Farol Traseiro 1", ref: "img/carros/faroltraseira1.jpeg" },
   { nome: "Pneu Traseiro 1", ref: "img/carros/pneutraseiro1.jpeg" },
   { nome: "Traseira lado 2", ref: "img/carros/traseiralado2.jpeg" },
-  { nome: "Farol Traseiro 2", ref: "img/carros/faroltraseiro2.jpeg" },
+  { nome: "Farol Traseiro 2", ref: "img/carros/faroltraseira2.jpeg" },
   { nome: "Pneu Traseiro 2", ref: "img/carros/pneutraseiro2.jpeg" },
   { nome: "Porta Aberta", ref: "img/carros/portaaberta.jpeg" },
   { nome: "Kilometragem com chave virada", ref: "img/carros/kilometragem.jpeg" },
@@ -140,10 +140,9 @@ async function enviarVistoria() {
     const url = await enviarParaImgBB(fotosLinks[i]);
     if (url) urls.push(url);
   }
+  console.log("Fotos enviadas:", urls);
 
   alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
-
-  // Redireciona para WhatsApp
   window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
 }
 
@@ -204,15 +203,13 @@ tirarFotoBtn.addEventListener("click", () => {
   canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL("image/jpeg");
 
-  // Salva ou substitui a foto atual
-  fotosLinks[indiceFoto] = dataUrl;
-
   fotoTiradaImg.src = dataUrl;
-  fotoReferenciaResultado.src = fotosLista[indiceFoto].ref || "placeholder.png";
+  fotosLinks[indiceFoto] = dataUrl; // 👉 substitui ou adiciona no índice correto
 
-  proximaBtn.textContent = (indiceFoto === fotosLista.length - 1)
-    ? "Finalizar Vistoria"
-    : "Próxima Foto";
+  const fotoAtual = fotosLista[indiceFoto];
+  fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
+
+  proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
@@ -220,6 +217,7 @@ tirarFotoBtn.addEventListener("click", () => {
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
+  fotosLinks[indiceFoto] = null; // 👉 remove a foto do índice atual
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
@@ -232,10 +230,9 @@ proximaBtn.addEventListener("click", () => {
 // Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("vistoriaAcessada")) {
-    // Se já acessou antes, vai direto para a câmera
+    // 👉 Se já acessou antes: mostra os modais normais, mas abre câmera direto
     startCamera();
-    modalOverlay.style.display = "none";
-    cameraContainer.style.display = "flex";
+    mostrarModal(modais.instrucoes);
   } else {
     modalOverlay.style.display = "flex";
     mostrarModal(modais.instrucoes);
