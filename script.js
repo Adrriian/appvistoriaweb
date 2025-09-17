@@ -131,24 +131,28 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// Finalizar vistoria com animação e WhatsApp
+// Finalizar vistoria com modal carregando e redirecionamento WhatsApp
 async function finalizarVistoria() {
-  // Criar modal de carregamento
-  const loadingModal = document.createElement("div");
-  loadingModal.style.position = "fixed";
-  loadingModal.style.top = "50%";
-  loadingModal.style.left = "50%";
-  loadingModal.style.transform = "translate(-50%, -50%)";
-  loadingModal.style.width = "120px";
-  loadingModal.style.height = "120px";
-  loadingModal.style.borderRadius = "10px";
-  loadingModal.style.background = "#fff";
-  loadingModal.style.display = "flex";
-  loadingModal.style.alignItems = "center";
-  loadingModal.style.justifyContent = "center";
-  loadingModal.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
-  loadingModal.innerHTML = `<div style="width:50px;height:50px;border-radius:50%;border:5px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
-  document.body.appendChild(loadingModal);
+  // Fecha modal resultado
+  modalOverlay.style.display = "none";
+
+  // Modal de carregamento
+  const modalCarregando = document.createElement("div");
+  modalCarregando.id = "modal-carregando";
+  modalCarregando.style.position = "fixed";
+  modalCarregando.style.top = "50%";
+  modalCarregando.style.left = "50%";
+  modalCarregando.style.transform = "translate(-50%, -50%)";
+  modalCarregando.style.width = "150px";
+  modalCarregando.style.height = "150px";
+  modalCarregando.style.background = "#fff";
+  modalCarregando.style.display = "flex";
+  modalCarregando.style.alignItems = "center";
+  modalCarregando.style.justifyContent = "center";
+  modalCarregando.style.borderRadius = "10px";
+  modalCarregando.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+  modalCarregando.innerHTML = `<div style="width:60px;height:60px;border-radius:50%;border:6px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
+  document.body.appendChild(modalCarregando);
 
   // Enviar fotos para ImgBB
   const urls = [];
@@ -157,13 +161,11 @@ async function finalizarVistoria() {
     if (url) urls.push(url);
   }
 
-  document.body.removeChild(loadingModal);
+  // Remove modal de carregamento
+  document.body.removeChild(modalCarregando);
 
-  // Criar link para página de fotos
-  const fotosPageLink = `https://appvistoriaweb.netlify.app/fotossite.html?fotos=${encodeURIComponent(JSON.stringify(urls))}`;
-
-  // Redirecionar para WhatsApp
-  const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: ${fotosPageLink}`);
+  // Redireciona para WhatsApp com link fixo
+  const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: https://appvistoriaweb.netlify.app/fotossite`);
   window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
 }
 
@@ -241,7 +243,7 @@ refazerBtn.addEventListener("click", () => {
   cameraContainer.style.display = "flex";
 });
 
-// Próxima foto / finalizar vistoria
+// Próxima / Finalizar
 proximaBtn.addEventListener("click", () => {
   if (indiceFoto === fotosLista.length - 1) {
     finalizarVistoria();
