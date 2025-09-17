@@ -222,10 +222,29 @@ refazerBtn.addEventListener("click", () => {
   cameraContainer.style.display = "flex";
 });
 
-// Próxima foto / finalizar vistoria
+// Seleciona o modal de carregamento
+const modalLoading = document.getElementById("modal-loading");
+
+// Função para mostrar modal de carregamento
+function mostrarLoading() {
+  modalOverlay.style.display = "flex";
+  modalLoading.style.display = "flex";
+}
+
+// Alterar evento do botão Próxima / Finalizar
 proximaBtn.addEventListener("click", () => {
-  avancarFoto();
+  if (indiceFoto === fotosLista.length - 1) {
+    // Última foto: fechar modal resultado e abrir carregando
+    modais.resultado.classList.remove("active"); // fecha modal resultado
+    mostrarLoading();
+
+    // Aqui você pode chamar a função de envio das fotos
+    enviarVistoria(); // opcional se quiser enviar imediatamente
+  } else {
+    avancarFoto();
+  }
 });
+
 
 // Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
