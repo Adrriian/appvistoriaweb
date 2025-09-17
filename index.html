@@ -14,37 +14,45 @@
 <div id="modal-overlay" class="modal-overlay" style="display:flex;">
 
     <!-- Modal conteúdo central -->
-    <div class="modal-content" id="modal-instrucoes">
-      <h2>Instruções para tirar as fotos</h2>
-      <p>As fotos precisam ser tiradas com o celular deitado e não em pé.</p>
-      <div class="img-instrucoes">
-        <div>
-          <p>Correto</p>
-          <img src="deitado.png" alt="Correto">
+    <div class="modal-content" id="instruction">
+      <div class="modal-instrucoes">
+        <h2>Instruções para tirar as fotos</h2>
+        <p>As fotos precisam ser tiradas com o celular deitado e não em pé.</p>
+        <div class="img-instrucoes">
+          <div class="img-details">
+            <p>Correto</p>
+            <img src="IMG/CORRETO.png" alt="Correto">
+          </div>
+          <div class="img-details2">
+            <p>Errado</p>
+            <img src="IMG/ERRADO.png" alt="Errado">
+          </div>
         </div>
-        <div>
-          <p>Errado</p>
-          <img src="em_pe.png" alt="Errado">
-        </div>
+        <button id="btn-fazer-vistoria">Fazer Vistoria</button>
       </div>
-      <button id="btn-fazer-vistoria">Fazer Vistoria</button>
     </div>
 
     <!-- Modal Tipo de Veículo -->
     <div class="modal-content" id="modal-veiculo">
-      <h2>Escolha o tipo de veículo</h2>
-      <div class="opcoes-veiculo">
-        <button data-veiculo="carro">Carro</button>
-        <button data-veiculo="moto">Moto</button>
-        <button data-veiculo="caminhao">Caminhão</button>
+      <div class="selectcar">
+        <h2>Escolha o tipo de veículo</h2>
+        <div class="opcoes-veiculo">
+          <button data-veiculo="carro">Carro</button>
+          <button data-veiculo="moto">Moto</button>
+          <button data-veiculo="caminhao">Caminhão</button>
+        </div>
       </div>
     </div>
 
     <!-- Modal Modo de Fotos -->
     <div class="modal-content" id="modal-modo-fotos">
-      <h2>Escolha o modo de fotos</h2>
-      <button id="btn-todas">Tirar todas as fotos</button>
-      <button id="btn-especifica">Tirar foto específica</button>
+      <div class="selectop">
+          <h2>Escolha o modo de fotos</h2>
+          <div class="opcoes2">
+             <button id="btn-todas">Tirar todas as fotos</button>
+            <button id="btn-especifica">Tirar foto específica</button>
+          </div>
+      </div>
     </div>
 
     <!-- Modal Fotos Específicas -->
@@ -62,20 +70,22 @@
 
     <!-- Modal Resultado -->
     <div class="modal-content" id="modal-resultado">
-      <h2>Resultado</h2>
-      <div class="fotos-comparacao">
-        <div class="foto-box">
-          <h3>Foto de referência</h3>
-          <img id="foto-referencia" src="placeholder.png" alt="Referência">
+      <div class="result">
+        <h2>Resultado</h2>
+        <div class="fotos-comparacao">
+          <div class="foto-box">
+            <h3>Foto de referência</h3>
+            <img id="foto-referencia" src="placeholder.png" alt="Referência">
+          </div>
+          <div class="foto-box">
+            <h3>Sua foto</h3>
+            <img id="foto-tirada" alt="Sua foto">
+          </div>
         </div>
-        <div class="foto-box">
-          <h3>Sua foto</h3>
-          <img id="foto-tirada" alt="Sua foto">
+        <div class="botoes-resultado">
+          <button id="refazer">Refazer Foto</button>
+          <button id="proxima">Próxima Foto</button>
         </div>
-      </div>
-      <div class="botoes-resultado">
-        <button id="refazer">Refazer Foto</button>
-        <button id="proxima">Próxima Foto</button>
       </div>
     </div>
 
