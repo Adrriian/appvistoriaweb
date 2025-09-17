@@ -1,51 +1,13 @@
-// ---------- LISTAS DE FOTOS ----------
-const fotosCarro = [
-  { nome: "Frente", ref: "img/carros/frente.jpeg" },
-  { nome: "Frente Lado 1", ref: "img/carros/frentelado1.jpeg" },
-  { nome: "Farol Dianteiro 1", ref: "img/carros/faroldianteiro1.jpeg" },
-  { nome: "Pneu Dianteiro 1", ref: "img/carros/pneudianteiro1.jpeg" },
-  { nome: "Espelho Dianteiro 1", ref: "img/carros/espelho1.jpeg" },
-  { nome: "Frente Lado 2", ref: "img/carros/frentelado2.jpeg" },
-  { nome: "Farol Dianteiro 2", ref: "img/carros/faroldianteiro2.jpeg" },
-  { nome: "Pneu Dianteiro 2", ref: "img/carros/pneudianteiro2.jpeg" },
-  { nome: "Espelho Dianteiro 2", ref: "img/carros/espelho2.jpeg" },
-  { nome: "Traseira", ref: "img/carros/traseira.jpeg" },
-  { nome: "Traseira lado 1", ref: "img/carros/traseiralado1.jpeg" },
-  { nome: "Farol Traseiro 1", ref: "img/carros/faroltraseira1.jpeg" },
-  { nome: "Pneu Traseiro 1", ref: "img/carros/pneutraseiro1.jpeg" },
-  { nome: "Traseira lado 2", ref: "img/carros/traseiralado2.jpeg" },
-  { nome: "Farol Traseiro 2", ref: "img/carros/faroltraseira2.jpeg" },
-  { nome: "Pneu Traseiro 2", ref: "img/carros/pneutraseiro2.jpeg" },
-  { nome: "Porta Aberta", ref: "img/carros/portaaberta.jpeg" },
-  { nome: "Kilometragem com chave virada", ref: "img/carros/kilometragem.jpeg" },
-  { nome: "Parabrisa", ref: "img/carros/parabrisa.jpeg" },
-  { nome: "Motor", ref: "img/carros/Motor.jpeg" },
-  { nome: "Chassi", ref: "img/carros/chassi.jpeg" },
-];
-
-const fotosMoto = [
-  { nome: "Frente", ref: "placeholder.png" },
-  { nome: "Traseira", ref: "placeholder.png" },
-  { nome: "Chassi", ref: "placeholder.png" }
-];
-
-const fotosCaminhao = [
-  { nome: "Frente", ref: "placeholder.png" },
-  { nome: "Traseira", ref: "placeholder.png" },
-  { nome: "Motor", ref: "placeholder.png" },
-  { nome: "Chassi", ref: "placeholder.png" }
-];
+// ---------- CONFIGURAÇÃO ----------
+const IMGBB_API = "https://api.imgbb.com/1/upload";
+const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
+const WHATSAPP = "47984910058"; // seu WhatsApp
 
 // ---------- VARIÁVEIS ----------
 let fotosLista = [];
 let fotosLinks = [];
+let fotosUrlsImgBB = [];
 let indiceFoto = 0;
-
-// ---------- CONFIGURAÇÃO DO SITE ----------
-// Troque aqui para cada site
-const IMGBB_API = "https://api.imgbb.com/1/upload";
-const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
-const WHATSAPP = "47984910058"; // seu WhatsApp
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -76,6 +38,9 @@ const fotoTiradaImg = document.getElementById("foto-tirada");
 const refazerBtn = document.getElementById("refazer");
 const proximaBtn = document.getElementById("proxima");
 const fotoReferenciaResultado = document.getElementById("foto-referencia");
+const downloadAllBtn = document.createElement("button");
+downloadAllBtn.textContent = "Baixar todas as fotos";
+downloadAllBtn.style.margin = "8px";
 
 // ---------- FUNÇÕES ----------
 
@@ -86,15 +51,11 @@ function mostrarModal(modal) {
   modalOverlay.style.display = "flex";
 }
 
-// Iniciar câmera com reinicialização
+// Iniciar câmera
 async function startCamera() {
   try {
-    // Para qualquer stream existente
-    if (video.srcObject) {
-      video.srcObject.getTracks().forEach(track => track.stop());
-    }
-
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     video.srcObject = stream;
     await video.play();
   } catch (err) {
@@ -114,24 +75,21 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    enviarVistoria();
+    enviarVistoria(); // última foto → enviar todas
   } else {
     mostrarFotoAtual();
   }
 }
 
-// ---------- UPLOAD IMG BB ----------
+// ---------- UPLOAD PARA IMGBB ----------
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
   formData.append("key", IMGBB_KEY);
 
   try {
-    const response = await fetch(IMGBB_API, {
-      method: "POST",
-      body: formData
-    });
-    const resultado = await response.json();
+    const res = await fetch(IMGBB_API, { method: "POST", body: formData });
+    const resultado = await res.json();
     return resultado.data.url;
   } catch (err) {
     console.error("Erro ao enviar para ImgBB:", err);
@@ -139,19 +97,55 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// Enviar todas as fotos e redirecionar
+// ---------- ENVIAR TODAS AS FOTOS ----------
 async function enviarVistoria() {
-  const urls = [];
+  fotosUrlsImgBB = [];
   for (let i = 0; i < fotosLinks.length; i++) {
     const url = await enviarParaImgBB(fotosLinks[i]);
-    if (url) urls.push(url);
+    if (url) fotosUrlsImgBB.push(url);
   }
-  console.log("Fotos enviadas:", urls);
 
-  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
+  // Criar lista de links na modal
+  const divLinks = document.createElement("div");
+  divLinks.style.display = "flex";
+  divLinks.style.flexDirection = "column";
+  divLinks.style.alignItems = "center";
+  divLinks.style.marginTop = "16px";
 
-  // Redireciona para WhatsApp
-  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
+  fotosUrlsImgBB.forEach(url => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.textContent = url;
+    a.target = "_blank";
+    a.style.margin = "4px";
+    divLinks.appendChild(a);
+  });
+
+  // Adiciona botão de download
+  downloadAllBtn.onclick = () => baixarTodasFotos();
+  divLinks.appendChild(downloadAllBtn);
+
+  const resultDiv = modais.resultado.querySelector(".result");
+  resultDiv.appendChild(divLinks);
+
+  mostrarModal(modais.resultado);
+
+  // Mensagem para WhatsApp
+  const msg = encodeURIComponent("Olá, terminei a vistoria! Aqui estão as fotos: " + fotosUrlsImgBB.join("\n"));
+  const linkWhats = `https://wa.me/${WHATSAPP}?text=${msg}`;
+  window.open(linkWhats, "_blank");
+}
+
+// ---------- BAIXAR TODAS AS FOTOS EM ZIP ----------
+async function baixarTodasFotos() {
+  const zip = new JSZip();
+  for (let i = 0; i < fotosUrlsImgBB.length; i++) {
+    const res = await fetch(fotosUrlsImgBB[i]);
+    const blob = await res.blob();
+    zip.file(`foto_${i + 1}.jpg`, blob);
+  }
+  const content = await zip.generateAsync({ type: "blob" });
+  saveAs(content, "vistoria.zip");
 }
 
 // ---------- EVENTOS ----------
@@ -216,12 +210,8 @@ tirarFotoBtn.addEventListener("click", () => {
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
-  // Atualiza texto do botão dependendo se é a última foto
-  if (indiceFoto === fotosLista.length - 1) {
-    proximaBtn.textContent = "Finalizar Vistoria";
-  } else {
-    proximaBtn.textContent = "Próxima Foto";
-  }
+  // Atualiza texto do botão
+  proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
@@ -233,12 +223,10 @@ refazerBtn.addEventListener("click", () => {
   cameraContainer.style.display = "flex";
 });
 
-// Próxima foto / finalizar vistoria
-proximaBtn.addEventListener("click", () => {
-  avancarFoto();
-});
+// Próxima foto / finalizar
+proximaBtn.addEventListener("click", () => avancarFoto());
 
-// Ao carregar a página
+// Carregar modal de instruções ao abrir página
 window.addEventListener("DOMContentLoaded", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.instrucoes);
