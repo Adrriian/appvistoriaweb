@@ -41,11 +41,10 @@ let fotosLista = [];
 let fotosLinks = [];
 let indiceFoto = 0;
 
-// ---------- CONFIGURAÇÃO DO SITE ----------
+// ---------- CONFIGURAÇÃO ----------
 const IMGBB_API = "https://api.imgbb.com/1/upload";
 const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d";
-const WHATSAPP = "47984910058"; 
-const SITE_FOTOS = "https://site-de-fotos-exemplo.netlify.app"; // Substitua pelo seu site de fotos
+const WHATSAPP = "47984910058";
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -55,8 +54,7 @@ const modais = {
   modo: document.getElementById("modal-modo-fotos"),
   especifica: document.getElementById("modal-fotos-especificas"),
   foto: document.getElementById("modal-foto"),
-  resultado: document.getElementById("modal-resultado"),
-  carregando: document.getElementById("modal-carregando") // modal novo
+  resultado: document.getElementById("modal-resultado")
 };
 
 const btnFazerVistoria = document.getElementById("btn-fazer-vistoria");
@@ -80,15 +78,17 @@ const fotoReferenciaResultado = document.getElementById("foto-referencia");
 
 // ---------- FUNÇÕES ----------
 
+// Mostrar modal
 function mostrarModal(modal) {
   Object.values(modais).forEach(m => m.classList.remove("active"));
-  if(modal) modal.classList.add("active");
+  modal.classList.add("active");
   modalOverlay.style.display = "flex";
 }
 
+// Iniciar câmera
 async function startCamera() {
   try {
-    if (video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
+    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     video.srcObject = stream;
     await video.play();
@@ -97,6 +97,7 @@ async function startCamera() {
   }
 }
 
+// Mostrar foto atual
 function mostrarFotoAtual() {
   const fotoAtual = fotosLista[indiceFoto];
   tituloFoto.textContent = fotoAtual.nome;
@@ -104,32 +105,49 @@ function mostrarFotoAtual() {
   mostrarModal(modais.foto);
 }
 
+// Avançar foto
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    finalizarVistoria();
+    enviarVistoria();
   } else {
     mostrarFotoAtual();
   }
 }
 
+// ---------- UPLOAD IMG BB ----------
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
   formData.append("key", IMGBB_KEY);
+
   try {
     const res = await fetch(IMGBB_API, { method: "POST", body: formData });
     const resultado = await res.json();
     return resultado.data.url;
-  } catch(err) {
-    console.error("Erro ao enviar ImgBB:", err);
+  } catch (err) {
+    console.error("Erro ao enviar para ImgBB:", err);
     return null;
   }
 }
 
-// ---------- NOVA FUNÇÃO FINALIZAR VISTORIA COM LOADING ----------
-async function finalizarVistoria() {
-  mostrarModal(modais.carregando); // Mostra o modal de carregamento
+// ---------- ENVIAR VISTORIA ----------
+async function enviarVistoria() {
+  const loadingModal = document.createElement("div");
+  loadingModal.style.position = "fixed";
+  loadingModal.style.top = "50%";
+  loadingModal.style.left = "50%";
+  loadingModal.style.transform = "translate(-50%, -50%)";
+  loadingModal.style.width = "120px";
+  loadingModal.style.height = "120px";
+  loadingModal.style.borderRadius = "10px";
+  loadingModal.style.background = "#fff";
+  loadingModal.style.display = "flex";
+  loadingModal.style.alignItems = "center";
+  loadingModal.style.justifyContent = "center";
+  loadingModal.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+  loadingModal.innerHTML = `<div style="width:50px;height:50px;border-radius:50%;border:5px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
+  document.body.appendChild(loadingModal);
 
   const urls = [];
   for (let i = 0; i < fotosLinks.length; i++) {
@@ -137,9 +155,11 @@ async function finalizarVistoria() {
     if (url) urls.push(url);
   }
 
-  // Redireciona para WhatsApp com link do site de fotos
-  const msg = encodeURIComponent(`Olá, terminei a vistoria! Confira as fotos aqui: ${SITE_FOTOS}`);
-  window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
+  document.body.removeChild(loadingModal);
+  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
+
+  // Redireciona para WhatsApp
+  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
 }
 
 // ---------- EVENTOS ----------
@@ -154,9 +174,8 @@ btnFazerVistoria.addEventListener("click", () => {
 veiculoBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const tipo = btn.getAttribute("data-veiculo");
-    fotosLista =
-      tipo === "carro" ? fotosCarro :
-      tipo === "moto" ? fotosMoto : fotosCaminhao;
+    fotosLista = tipo === "carro" ? fotosCarro :
+                 tipo === "moto" ? fotosMoto : fotosCaminhao;
     mostrarModal(modais.modo);
   });
 });
@@ -168,7 +187,7 @@ btnTodas.addEventListener("click", () => {
   mostrarFotoAtual();
 });
 
-// Foto específica
+// Fotos específicas
 btnEspecifica.addEventListener("click", () => {
   listaFotosEspecificas.innerHTML = "";
   fotosLista.forEach((f, i) => {
@@ -206,32 +225,39 @@ tirarFotoBtn.addEventListener("click", () => {
 
   proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
+  modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
-  fotosLinks.pop(); // Remove a última foto
+  if (fotosLinks.length > 0) fotosLinks.pop();
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
-// Próxima foto / finalizar
+// Próxima foto / finalizar vistoria
 proximaBtn.addEventListener("click", () => {
-  if (indiceFoto === fotosLista.length - 1) {
-    finalizarVistoria();
+  avancarFoto();
+});
+
+// ---------- VERIFICAÇÃO DE ACESSO ANTERIOR ----------
+window.addEventListener("DOMContentLoaded", () => {
+  const jaAcessou = localStorage.getItem("vistoriaAcessada");
+  if (jaAcessou) {
+    startCamera();
+    mostrarModal(modais.instrucoes);
   } else {
-    avancarFoto();
+    localStorage.setItem("vistoriaAcessada", "true");
+    mostrarModal(modais.instrucoes);
   }
 });
 
-// Ao carregar a página
-window.addEventListener("DOMContentLoaded", () => {
-  // Se já acessou antes, mostra câmera direto
-  if (localStorage.getItem("vistoria_iniciada")) {
-    cameraContainer.style.display = "flex";
-  } else {
-    mostrarModal(modais.instrucoes);
-  }
-  localStorage.setItem("vistoria_iniciada", true);
-});
+// ---------- ANIMAÇÃO SPIN ----------
+const style = document.createElement("style");
+style.innerHTML = `
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+`;
+document.head.appendChild(style);
