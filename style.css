@@ -164,6 +164,10 @@ button {
   width: 100px;
   height: 100px;
 }
+.ft_rf{
+  width: 300px;
+  border-radius: 10px;
+}
 }
 @media (max-width: 480px) {
   button {
@@ -173,6 +177,10 @@ button {
     width: 90%;
     height: 90%;
   }
+  .ft_rf{
+  width: 250px;
+  border-radius: 10px;
+}
 }
 @media (max-width: 320px) {
 .img-instrucoes,
@@ -185,5 +193,9 @@ button {
 .foto-box img{
   width: 60px;
   height: 60px;
+}
+.ft_rf{
+  width: 200px;
+  border-radius: 10px;
 }
 }
