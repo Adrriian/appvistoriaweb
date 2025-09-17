@@ -43,8 +43,9 @@ let indiceFoto = 0;
 
 // ---------- CONFIGURAÇÃO DO SITE ----------
 const IMGBB_API = "https://api.imgbb.com/1/upload";
-const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
-const WHATSAPP = "47984910058"; // seu WhatsApp
+const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d";
+const WHATSAPP = "47984910058"; 
+const SITE_FOTOS = "https://site-de-fotos-exemplo.netlify.app"; // Substitua pelo seu site de fotos
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -54,7 +55,8 @@ const modais = {
   modo: document.getElementById("modal-modo-fotos"),
   especifica: document.getElementById("modal-fotos-especificas"),
   foto: document.getElementById("modal-foto"),
-  resultado: document.getElementById("modal-resultado")
+  resultado: document.getElementById("modal-resultado"),
+  carregando: document.getElementById("modal-carregando") // modal novo
 };
 
 const btnFazerVistoria = document.getElementById("btn-fazer-vistoria");
@@ -78,19 +80,15 @@ const fotoReferenciaResultado = document.getElementById("foto-referencia");
 
 // ---------- FUNÇÕES ----------
 
-// Mostrar modal
 function mostrarModal(modal) {
   Object.values(modais).forEach(m => m.classList.remove("active"));
-  modal.classList.add("active");
+  if(modal) modal.classList.add("active");
   modalOverlay.style.display = "flex";
 }
 
-// Iniciar câmera
 async function startCamera() {
   try {
-    if (video.srcObject) {
-      video.srcObject.getTracks().forEach(track => track.stop());
-    }
+    if (video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     video.srcObject = stream;
     await video.play();
@@ -99,7 +97,6 @@ async function startCamera() {
   }
 }
 
-// Mostrar foto atual
 function mostrarFotoAtual() {
   const fotoAtual = fotosLista[indiceFoto];
   tituloFoto.textContent = fotoAtual.nome;
@@ -107,43 +104,42 @@ function mostrarFotoAtual() {
   mostrarModal(modais.foto);
 }
 
-// Avançar foto
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    enviarVistoria();
+    finalizarVistoria();
   } else {
     mostrarFotoAtual();
   }
 }
 
-// ---------- UPLOAD IMG BB ----------
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
   formData.append("key", IMGBB_KEY);
-
   try {
-    const response = await fetch(IMGBB_API, { method: "POST", body: formData });
-    const resultado = await response.json();
+    const res = await fetch(IMGBB_API, { method: "POST", body: formData });
+    const resultado = await res.json();
     return resultado.data.url;
-  } catch (err) {
-    console.error("Erro ao enviar para ImgBB:", err);
+  } catch(err) {
+    console.error("Erro ao enviar ImgBB:", err);
     return null;
   }
 }
 
-// Enviar todas as fotos e redirecionar
-async function enviarVistoria() {
+// ---------- NOVA FUNÇÃO FINALIZAR VISTORIA COM LOADING ----------
+async function finalizarVistoria() {
+  mostrarModal(modais.carregando); // Mostra o modal de carregamento
+
   const urls = [];
   for (let i = 0; i < fotosLinks.length; i++) {
     const url = await enviarParaImgBB(fotosLinks[i]);
     if (url) urls.push(url);
   }
-  console.log("Fotos enviadas:", urls);
 
-  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
-  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
+  // Redireciona para WhatsApp com link do site de fotos
+  const msg = encodeURIComponent(`Olá, terminei a vistoria! Confira as fotos aqui: ${SITE_FOTOS}`);
+  window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
 }
 
 // ---------- EVENTOS ----------
@@ -152,7 +148,6 @@ async function enviarVistoria() {
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
   startCamera();
-  localStorage.setItem("vistoriaAcessada", "true");
 });
 
 // Escolher veículo
@@ -204,37 +199,39 @@ tirarFotoBtn.addEventListener("click", () => {
   const dataUrl = canvas.toDataURL("image/jpeg");
 
   fotoTiradaImg.src = dataUrl;
-  fotosLinks[indiceFoto] = dataUrl; // 👉 substitui ou adiciona no índice correto
+  fotosLinks.push(dataUrl);
 
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
   proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
-  modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
-  fotosLinks[indiceFoto] = null; // 👉 remove a foto do índice atual
+  fotosLinks.pop(); // Remove a última foto
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
-// Próxima foto / finalizar vistoria
+// Próxima foto / finalizar
 proximaBtn.addEventListener("click", () => {
-  avancarFoto();
+  if (indiceFoto === fotosLista.length - 1) {
+    finalizarVistoria();
+  } else {
+    avancarFoto();
+  }
 });
 
 // Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem("vistoriaAcessada")) {
-    // 👉 Se já acessou antes: mostra os modais normais, mas abre câmera direto
-    startCamera();
-    mostrarModal(modais.instrucoes);
+  // Se já acessou antes, mostra câmera direto
+  if (localStorage.getItem("vistoria_iniciada")) {
+    cameraContainer.style.display = "flex";
   } else {
-    modalOverlay.style.display = "flex";
     mostrarModal(modais.instrucoes);
   }
+  localStorage.setItem("vistoria_iniciada", true);
 });
