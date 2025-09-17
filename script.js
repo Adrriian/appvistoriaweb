@@ -41,10 +41,10 @@ let fotosLista = [];
 let fotosLinks = [];
 let indiceFoto = 0;
 
-// ---------- CONFIGURAÇÃO ----------
+// ---------- CONFIGURAÇÃO DO SITE ----------
 const IMGBB_API = "https://api.imgbb.com/1/upload";
-const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d";
-const WHATSAPP = "47984910058";
+const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
+const WHATSAPP = "47984910058"; // seu WhatsApp
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -88,7 +88,9 @@ function mostrarModal(modal) {
 // Iniciar câmera
 async function startCamera() {
   try {
-    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+    }
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     video.srcObject = stream;
     await video.play();
@@ -109,21 +111,21 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    finalizarVistoria();
+    enviarVistoria();
   } else {
     mostrarFotoAtual();
   }
 }
 
-// Upload ImgBB
+// ---------- UPLOAD IMG BB ----------
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
   formData.append("key", IMGBB_KEY);
 
   try {
-    const res = await fetch(IMGBB_API, { method: "POST", body: formData });
-    const resultado = await res.json();
+    const response = await fetch(IMGBB_API, { method: "POST", body: formData });
+    const resultado = await response.json();
     return resultado.data.url;
   } catch (err) {
     console.error("Erro ao enviar para ImgBB:", err);
@@ -131,40 +133,17 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// Finalizar vistoria com animação e WhatsApp
-async function finalizarVistoria() {
-  // Criar modal de carregamento
-  const loadingModal = document.createElement("div");
-  loadingModal.style.position = "fixed";
-  loadingModal.style.top = "50%";
-  loadingModal.style.left = "50%";
-  loadingModal.style.transform = "translate(-50%, -50%)";
-  loadingModal.style.width = "120px";
-  loadingModal.style.height = "120px";
-  loadingModal.style.borderRadius = "10px";
-  loadingModal.style.background = "#fff";
-  loadingModal.style.display = "flex";
-  loadingModal.style.alignItems = "center";
-  loadingModal.style.justifyContent = "center";
-  loadingModal.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
-  loadingModal.innerHTML = `<div style="width:50px;height:50px;border-radius:50%;border:5px solid #ccc;border-top-color:#4CAF50;animation: spin 1s linear infinite;"></div>`;
-  document.body.appendChild(loadingModal);
-
-  // Enviar fotos para ImgBB
+// Enviar todas as fotos e redirecionar
+async function enviarVistoria() {
   const urls = [];
   for (let i = 0; i < fotosLinks.length; i++) {
     const url = await enviarParaImgBB(fotosLinks[i]);
     if (url) urls.push(url);
   }
+  console.log("Fotos enviadas:", urls);
 
-  document.body.removeChild(loadingModal);
-
-  // Criar link para página de fotos
-  const fotosPageLink = `https://appvistoriaweb.netlify.app/fotossite.html?fotos=${encodeURIComponent(JSON.stringify(urls))}`;
-
-  // Redirecionar para WhatsApp
-  const msg = encodeURIComponent(`Olá! Terminei a vistoria. Confira as fotos: ${fotosPageLink}`);
-  window.location.href = `https://wa.me/${WHATSAPP}?text=${msg}`;
+  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
+  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
 }
 
 // ---------- EVENTOS ----------
@@ -173,14 +152,16 @@ async function finalizarVistoria() {
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
   startCamera();
+  localStorage.setItem("vistoriaAcessada", "true");
 });
 
 // Escolher veículo
 veiculoBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const tipo = btn.getAttribute("data-veiculo");
-    fotosLista = tipo === "carro" ? fotosCarro :
-                 tipo === "moto" ? fotosMoto : fotosCaminhao;
+    fotosLista =
+      tipo === "carro" ? fotosCarro :
+      tipo === "moto" ? fotosMoto : fotosCaminhao;
     mostrarModal(modais.modo);
   });
 });
@@ -192,7 +173,7 @@ btnTodas.addEventListener("click", () => {
   mostrarFotoAtual();
 });
 
-// Fotos específicas
+// Foto específica
 btnEspecifica.addEventListener("click", () => {
   listaFotosEspecificas.innerHTML = "";
   fotosLista.forEach((f, i) => {
@@ -223,7 +204,7 @@ tirarFotoBtn.addEventListener("click", () => {
   const dataUrl = canvas.toDataURL("image/jpeg");
 
   fotoTiradaImg.src = dataUrl;
-  fotosLinks.push(dataUrl);
+  fotosLinks[indiceFoto] = dataUrl; // 👉 substitui ou adiciona no índice correto
 
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
@@ -236,37 +217,24 @@ tirarFotoBtn.addEventListener("click", () => {
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
-  if (fotosLinks.length > 0) fotosLinks.pop();
+  fotosLinks[indiceFoto] = null; // 👉 remove a foto do índice atual
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
 // Próxima foto / finalizar vistoria
 proximaBtn.addEventListener("click", () => {
-  if (indiceFoto === fotosLista.length - 1) {
-    finalizarVistoria();
-  } else {
-    avancarFoto();
-  }
+  avancarFoto();
 });
 
-// ---------- ACESSO ANTERIOR ----------
+// Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
-  const jaAcessou = localStorage.getItem("vistoriaAcessada");
-  if (jaAcessou) {
+  if (localStorage.getItem("vistoriaAcessada")) {
+    // 👉 Se já acessou antes: mostra os modais normais, mas abre câmera direto
     startCamera();
     mostrarModal(modais.instrucoes);
   } else {
-    localStorage.setItem("vistoriaAcessada", "true");
+    modalOverlay.style.display = "flex";
     mostrarModal(modais.instrucoes);
   }
 });
-
-// ---------- ANIMAÇÃO SPIN ----------
-const style = document.createElement("style");
-style.innerHTML = `
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-`;
-document.head.appendChild(style);
