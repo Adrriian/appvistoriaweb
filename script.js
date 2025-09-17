@@ -3,6 +3,44 @@ const IMGBB_API = "https://api.imgbb.com/1/upload";
 const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
 const WHATSAPP = "47984910058"; // seu WhatsApp
 
+// ---------- LISTAS DE FOTOS ----------
+const fotosCarro = [
+  { nome: "Frente", ref: "img/carros/frente.jpeg" },
+  { nome: "Frente Lado 1", ref: "img/carros/frentelado1.jpeg" },
+  { nome: "Farol Dianteiro 1", ref: "img/carros/faroldianteiro1.jpeg" },
+  { nome: "Pneu Dianteiro 1", ref: "img/carros/pneudianteiro1.jpeg" },
+  { nome: "Espelho Dianteiro 1", ref: "img/carros/espelho1.jpeg" },
+  { nome: "Frente Lado 2", ref: "img/carros/frentelado2.jpeg" },
+  { nome: "Farol Dianteiro 2", ref: "img/carros/faroldianteiro2.jpeg" },
+  { nome: "Pneu Dianteiro 2", ref: "img/carros/pneudianteiro2.jpeg" },
+  { nome: "Espelho Dianteiro 2", ref: "img/carros/espelho2.jpeg" },
+  { nome: "Traseira", ref: "img/carros/traseira.jpeg" },
+  { nome: "Traseira lado 1", ref: "img/carros/traseiralado1.jpeg" },
+  { nome: "Farol Traseiro 1", ref: "img/carros/faroltraseira1.jpeg" },
+  { nome: "Pneu Traseiro 1", ref: "img/carros/pneutraseiro1.jpeg" },
+  { nome: "Traseira lado 2", ref: "img/carros/traseiralado2.jpeg" },
+  { nome: "Farol Traseiro 2", ref: "img/carros/faroltraseira2.jpeg" },
+  { nome: "Pneu Traseiro 2", ref: "img/carros/pneutraseiro2.jpeg" },
+  { nome: "Porta Aberta", ref: "img/carros/portaaberta.jpeg" },
+  { nome: "Kilometragem com chave virada", ref: "img/carros/kilometragem.jpeg" },
+  { nome: "Parabrisa", ref: "img/carros/parabrisa.jpeg" },
+  { nome: "Motor", ref: "img/carros/Motor.jpeg" },
+  { nome: "Chassi", ref: "img/carros/chassi.jpeg" },
+];
+
+const fotosMoto = [
+  { nome: "Frente", ref: "placeholder.png" },
+  { nome: "Traseira", ref: "placeholder.png" },
+  { nome: "Chassi", ref: "placeholder.png" }
+];
+
+const fotosCaminhao = [
+  { nome: "Frente", ref: "placeholder.png" },
+  { nome: "Traseira", ref: "placeholder.png" },
+  { nome: "Motor", ref: "placeholder.png" },
+  { nome: "Chassi", ref: "placeholder.png" }
+];
+
 // ---------- VARIÁVEIS ----------
 let fotosLista = [];
 let fotosLinks = [];
@@ -49,26 +87,6 @@ function mostrarModal(modal) {
   Object.values(modais).forEach(m => m.classList.remove("active"));
   modal.classList.add("active");
   modalOverlay.style.display = "flex";
-}
-const fotosCarro = [
-  { nome: "Frente", ref: "img/carros/frente.jpeg" },
-  { nome: "Frente Lado 1", ref: "img/carros/frentelado1.jpeg" },
-  { nome: "Farol Dianteiro 1", ref: "img/carros/faroldianteiro1.jpeg" },
-  // ... restante das fotos do carro
-];
-
-const fotosMoto = [
-  { nome: "Frente", ref: "placeholder.png" },
-  { nome: "Traseira", ref: "placeholder.png" },
-  { nome: "Chassi", ref: "placeholder.png" }
-];
-
-const fotosCaminhao = [
-  { nome: "Frente", ref: "placeholder.png" },
-  { nome: "Traseira", ref: "placeholder.png" },
-  { nome: "Motor", ref: "placeholder.png" },
-  { nome: "Chassi", ref: "placeholder.png" }
-];
 
 // BOTÕES DE VEÍCULO
 veiculoBtns.forEach(btn => {
