@@ -19,7 +19,7 @@ const fotosCarro = [
   { nome: "Farol Traseiro 1", ref: "img/carros/faroltraseira1.jpeg" },
   { nome: "Pneu Traseiro 1", ref: "img/carros/pneutraseiro1.jpeg" },
   { nome: "Traseira lado 2", ref: "img/carros/traseiralado2.jpeg" },
-  { nome: "Farol Traseiro 2", ref: "img/carros/faroltraseira2.jpeg" },
+  { nome: "Farol Traseiro 2", ref: "img/carros/faroltraseiro2.jpeg" },
   { nome: "Pneu Traseiro 2", ref: "img/carros/pneutraseiro2.jpeg" },
   { nome: "Porta Aberta", ref: "img/carros/portaaberta.jpeg" },
   { nome: "Kilometragem com chave virada", ref: "img/carros/kilometragem.jpeg" },
@@ -119,7 +119,7 @@ function avancarFoto() {
   }
 }
 
-// Enviar imagem para ImgBB
+// ---------- UPLOAD PARA IMGBB ----------
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
@@ -135,7 +135,7 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// Enviar todas as fotos
+// ---------- ENVIAR TODAS AS FOTOS ----------
 async function enviarVistoria() {
   fotosUrlsImgBB = [];
   for (let i = 0; i < fotosLinks.length; i++) {
@@ -143,7 +143,7 @@ async function enviarVistoria() {
     if (url) fotosUrlsImgBB.push(url);
   }
 
-  // Mostrar links na modal
+  // Criar lista de links na modal
   const divLinks = document.createElement("div");
   divLinks.style.display = "flex";
   divLinks.style.flexDirection = "column";
@@ -159,22 +159,25 @@ async function enviarVistoria() {
     divLinks.appendChild(a);
   });
 
-  // Botão baixar todas
+  // Adiciona botão de download
   downloadAllBtn.onclick = () => baixarTodasFotos();
   divLinks.appendChild(downloadAllBtn);
 
   const resultDiv = modais.resultado.querySelector(".result");
+  resultDiv.innerHTML = ""; // limpar antes
   resultDiv.appendChild(divLinks);
 
   mostrarModal(modais.resultado);
 
-  // Abrir WhatsApp
+  alert("✅ Vistoria finalizada com sucesso!");
+
+  // Mensagem para WhatsApp
   const msg = encodeURIComponent("Olá, terminei a vistoria! Aqui estão as fotos: " + fotosUrlsImgBB.join("\n"));
   const linkWhats = `https://wa.me/${WHATSAPP}?text=${msg}`;
   window.open(linkWhats, "_blank");
 }
 
-// Baixar todas as fotos em ZIP
+// ---------- BAIXAR TODAS AS FOTOS EM ZIP ----------
 async function baixarTodasFotos() {
   const zip = new JSZip();
   for (let i = 0; i < fotosUrlsImgBB.length; i++) {
@@ -198,18 +201,9 @@ btnFazerVistoria.addEventListener("click", () => {
 veiculoBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const tipo = btn.getAttribute("data-veiculo");
-    if (tipo === "carro") fotosLista = fotosCarro;
-    else if (tipo === "moto") fotosLista = fotosMoto;
-    else if (tipo === "caminhao") fotosLista = fotosCaminhao;
-    else fotosLista = [];
-
-    if (fotosLista.length === 0) {
-      alert("Erro: fotos não definidas para este veículo.");
-      return;
-    }
-
-    fotosLinks = [];
-    indiceFoto = 0;
+    fotosLista =
+      tipo === "carro" ? fotosCarro :
+      tipo === "moto" ? fotosMoto : fotosCaminhao;
     mostrarModal(modais.modo);
   });
 });
@@ -241,6 +235,7 @@ btnEspecifica.addEventListener("click", () => {
 irCameraBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
+  startCamera();
 });
 
 // Tirar foto
@@ -257,6 +252,7 @@ tirarFotoBtn.addEventListener("click", () => {
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
+  // Atualiza texto do botão
   proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
   modalOverlay.style.display = "flex";
@@ -267,12 +263,19 @@ tirarFotoBtn.addEventListener("click", () => {
 refazerBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
+  startCamera();
 });
 
 // Próxima foto / finalizar
-proximaBtn.addEventListener("click", () => avancarFoto());
+proximaBtn.addEventListener("click", () => {
+  if (indiceFoto === fotosLista.length - 1) {
+    enviarVistoria(); // Finaliza vistoria
+  } else {
+    avancarFoto(); // Vai para a próxima
+  }
+});
 
-// Modal instruções ao abrir página
+// Carregar modal de instruções ao abrir página
 window.addEventListener("DOMContentLoaded", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.instrucoes);
