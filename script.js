@@ -41,11 +41,11 @@ let fotosLista = [];
 let fotosLinks = [];
 let indiceFoto = 0;
 
-// ---------- PARÂMETROS DA URL ----------
-const urlParams = new URLSearchParams(window.location.search);
-const IMGBB_API = urlParams.get("api") || "https://api.imgbb.com/1/upload";
-const IMGBB_KEY = urlParams.get("key") || "SUA_API_KEY_PADRAO";
-const WHATSAPP = urlParams.get("whats") || "47984910058";
+// ---------- CONFIGURAÇÃO DO SITE ----------
+// Troque aqui para cada site
+const IMGBB_API = "https://api.imgbb.com/1/upload";
+const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
+const WHATSAPP = "47984910058"; // seu WhatsApp
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -89,6 +89,11 @@ function mostrarModal(modal) {
 // Iniciar câmera
 async function startCamera() {
   try {
+    // Para qualquer stream existente
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     video.srcObject = stream;
     await video.play();
@@ -96,6 +101,7 @@ async function startCamera() {
     alert("Erro ao acessar a câmera: " + err.message);
   }
 }
+
 
 // Mostrar foto atual
 function mostrarFotoAtual() {
@@ -142,7 +148,8 @@ async function enviarVistoria() {
     if (url) urls.push(url);
   }
   console.log("Fotos enviadas:", urls);
-  alert("Vistoria finalizada e fotos enviadas!");
+
+  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
 
   // Redireciona para WhatsApp
   window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
