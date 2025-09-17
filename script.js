@@ -1,18 +1,4 @@
-// ---------- CONFIGURAÇÃO CONSULTOR ----------
-const consultores = {
-  joao: { key: "API_KEY_JOAO", whatsapp: "5511999999999" },
-  maria: { key: "API_KEY_MARIA", whatsapp: "5511888888888" },
-  pedro: { key: "API_KEY_PEDRO", whatsapp: "5511777777777" },
-  ana: { key: "API_KEY_ANA", whatsapp: "5511666666666" }
-};
-
-// Captura o consultor via link: ?consultor=joao
-const urlParams = new URLSearchParams(window.location.search);
-const consultorParam = urlParams.get("consultor") || "joao";
-const API_KEY = consultores[consultorParam].key;
-const NUM_WHATSAPP = consultores[consultorParam].whatsapp;
-
-// ---------- LISTA DE FOTOS ----------
+// ---------- LISTAS DE FOTOS ----------
 const fotosCarro = [
   "frente","frente lado 1","frente lado 2","farol 1","farol 2","espelho 1","espelho 2",
   "pneu dianteiro 1","pneu dianteiro 2","traseira","traseira lado 1","traseira lado 2",
@@ -20,8 +6,8 @@ const fotosCarro = [
   "porta aberta pegando a marcha e volante","kilometragem com a chave virada",
   "parabrisa","motor","chassi"
 ];
-const fotosMoto = [ /* definir */ ];
-const fotosCaminhao = [ /* definir */ ];
+const fotosMoto = ["frente", "traseira", "chassi"]; // exemplo simplificado
+const fotosCaminhao = ["frente", "traseira", "motor", "chassi"]; // exemplo simplificado
 
 let fotosLista = [];
 let fotosLinks = [];
@@ -30,7 +16,7 @@ let indiceFoto = 0;
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
 const modais = {
-  instrucoes: document.getElementById("modal-instrucoes"),
+  instrucoes: document.getElementById("instruction"),
   veiculo: document.getElementById("modal-veiculo"),
   modo: document.getElementById("modal-modo-fotos"),
   especifica: document.getElementById("modal-fotos-especificas"),
@@ -57,15 +43,13 @@ const refazerBtn = document.getElementById("refazer");
 const proximaBtn = document.getElementById("proxima");
 
 // ---------- FUNÇÕES ----------
-
-// Mostrar modal específico
 function mostrarModal(modal) {
   Object.values(modais).forEach(m=>m.classList.remove("active"));
   modal.classList.add("active");
   modalOverlay.style.display="flex";
 }
 
-// Iniciar câmera
+// Iniciar câmera (somente quando usuário clicar)
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
@@ -80,7 +64,10 @@ async function startCamera() {
 function avancarFoto() {
   indiceFoto++;
   if(indiceFoto >= fotosLista.length){
-    enviarWhatsApp();
+    alert("Vistoria finalizada!");
+    // aqui no futuro: enviar para WhatsApp
+    modalOverlay.style.display="flex";
+    mostrarModal(modais.instrucoes); // volta para instruções por enquanto
   } else {
     tituloFoto.textContent = fotosLista[indiceFoto];
     referenciaImg.src = "placeholder.png";
@@ -88,41 +75,13 @@ function avancarFoto() {
   }
 }
 
-// Upload para ImgBB
-async function uploadImgBB(blob, fileName){
-  const form = new FormData();
-  form.append("key", API_KEY);
-  form.append("image", blob, fileName);
-  try{
-    const res = await fetch("https://api.imgbb.com/1/upload",{method:"POST",body:form});
-    const data = await res.json();
-    if(data.success) fotosLinks.push(data.data.url);
-    else alert("Erro upload: "+data.error.message);
-  } catch(err){
-    alert("Erro ao enviar imagem: "+err.message);
-  }
-}
-
-// Enviar WhatsApp com links
-function enviarWhatsApp(){
-  let msg = "Vistoria finalizada! Links das fotos:\n\n"+fotosLinks.map((l,i)=>`Foto ${i+1}: ${l}`).join("\n");
-  const link = `https://wa.me/${NUM_WHATSAPP}?text=${encodeURIComponent(msg)}`;
-  window.location.href = link;
-}
-
 // ---------- EVENTOS ----------
 
-// Inicialização da página
-window.addEventListener("DOMContentLoaded", async () => {
-  // Mostra overlay e modal instruções
-  mostrarModal(modais.instrucoes);
-
-  // Tenta iniciar a câmera em background
-  await startCamera();
+// Botão iniciar vistoria → pede permissão de câmera
+btnFazerVistoria.addEventListener("click", ()=> {
+  mostrarModal(modais.veiculo);
+  startCamera(); // pede permissão só aqui
 });
-
-// Botão iniciar vistoria
-btnFazerVistoria.addEventListener("click", ()=> mostrarModal(modais.veiculo));
 
 // Escolher veículo
 veiculoBtns.forEach(btn=>{
@@ -167,7 +126,7 @@ irCameraBtn.addEventListener("click", ()=>{
 });
 
 // Tirar foto
-tirarFotoBtn.addEventListener("click", async ()=>{
+tirarFotoBtn.addEventListener("click", ()=>{
   // Captura foto
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
@@ -175,10 +134,6 @@ tirarFotoBtn.addEventListener("click", async ()=>{
   canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
   const dataUrl = canvas.toDataURL("image/jpeg");
   fotoTiradaImg.src = dataUrl;
-
-  // Converte para blob e envia ImgBB
-  const blob = await (await fetch(dataUrl)).blob();
-  await uploadImgBB(blob,fotosLista[indiceFoto]+".jpg");
 
   // Mostra modal de resultado
   modalOverlay.style.display="flex";
@@ -194,4 +149,9 @@ refazerBtn.addEventListener("click", ()=>{
 // Próxima foto
 proximaBtn.addEventListener("click", ()=>{
   avancarFoto();
+});
+// Quando a página carregar, já abre o modal de instruções
+window.addEventListener("DOMContentLoaded", () => {
+  modalOverlay.style.display = "flex";
+  mostrarModal(modais.instrucoes);
 });
