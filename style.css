@@ -133,7 +133,15 @@ button {
 .img-instrucoes div {
   text-align: center;
 }
+.modal-refente,
+.escolha_fotos{
+  display: flex;
+  flex-direction: column;
 
+}
+.escolha_fotos{
+  overflow-y: scroll;
+}
 /* RESPONSIVO */
 @media (max-width: 768px) {
 
