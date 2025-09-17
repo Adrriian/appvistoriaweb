@@ -87,29 +87,7 @@ function mostrarModal(modal) {
   Object.values(modais).forEach(m => m.classList.remove("active"));
   modal.classList.add("active");
   modalOverlay.style.display = "flex";
-
-// BOTÕES DE VEÍCULO
-veiculoBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const tipo = btn.getAttribute("data-veiculo");
-    if (tipo === "carro") fotosLista = fotosCarro;
-    else if (tipo === "moto") fotosLista = fotosMoto;
-    else if (tipo === "caminhao") fotosLista = fotosCaminhao;
-    else fotosLista = [];
-
-    if (fotosLista.length === 0) {
-      alert("Erro: fotos não definidas para este veículo.");
-      return;
-    }
-
-    // Limpa lista de fotos selecionadas caso tenha usado modo específico antes
-    fotosLinks = [];
-    indiceFoto = 0;
-
-    // Mostra o modal de modo de fotos
-    mostrarModal(modais.modo);
-  });
-});
+}
 
 // Iniciar câmera
 async function startCamera() {
@@ -141,7 +119,7 @@ function avancarFoto() {
   }
 }
 
-// ---------- UPLOAD PARA IMGBB ----------
+// Enviar imagem para ImgBB
 async function enviarParaImgBB(dataUrl) {
   const formData = new FormData();
   formData.append("image", dataUrl.split(",")[1]);
@@ -157,7 +135,7 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// ---------- ENVIAR TODAS AS FOTOS ----------
+// Enviar todas as fotos
 async function enviarVistoria() {
   fotosUrlsImgBB = [];
   for (let i = 0; i < fotosLinks.length; i++) {
@@ -165,7 +143,7 @@ async function enviarVistoria() {
     if (url) fotosUrlsImgBB.push(url);
   }
 
-  // Criar lista de links na modal
+  // Mostrar links na modal
   const divLinks = document.createElement("div");
   divLinks.style.display = "flex";
   divLinks.style.flexDirection = "column";
@@ -181,7 +159,7 @@ async function enviarVistoria() {
     divLinks.appendChild(a);
   });
 
-  // Adiciona botão de download
+  // Botão baixar todas
   downloadAllBtn.onclick = () => baixarTodasFotos();
   divLinks.appendChild(downloadAllBtn);
 
@@ -190,13 +168,13 @@ async function enviarVistoria() {
 
   mostrarModal(modais.resultado);
 
-  // Mensagem para WhatsApp
+  // Abrir WhatsApp
   const msg = encodeURIComponent("Olá, terminei a vistoria! Aqui estão as fotos: " + fotosUrlsImgBB.join("\n"));
   const linkWhats = `https://wa.me/${WHATSAPP}?text=${msg}`;
   window.open(linkWhats, "_blank");
 }
 
-// ---------- BAIXAR TODAS AS FOTOS EM ZIP ----------
+// Baixar todas as fotos em ZIP
 async function baixarTodasFotos() {
   const zip = new JSZip();
   for (let i = 0; i < fotosUrlsImgBB.length; i++) {
@@ -220,9 +198,18 @@ btnFazerVistoria.addEventListener("click", () => {
 veiculoBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const tipo = btn.getAttribute("data-veiculo");
-    fotosLista =
-      tipo === "carro" ? fotosCarro :
-      tipo === "moto" ? fotosMoto : fotosCaminhao;
+    if (tipo === "carro") fotosLista = fotosCarro;
+    else if (tipo === "moto") fotosLista = fotosMoto;
+    else if (tipo === "caminhao") fotosLista = fotosCaminhao;
+    else fotosLista = [];
+
+    if (fotosLista.length === 0) {
+      alert("Erro: fotos não definidas para este veículo.");
+      return;
+    }
+
+    fotosLinks = [];
+    indiceFoto = 0;
     mostrarModal(modais.modo);
   });
 });
@@ -270,7 +257,6 @@ tirarFotoBtn.addEventListener("click", () => {
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
 
-  // Atualiza texto do botão
   proximaBtn.textContent = indiceFoto === fotosLista.length - 1 ? "Finalizar Vistoria" : "Próxima Foto";
 
   modalOverlay.style.display = "flex";
@@ -286,7 +272,7 @@ refazerBtn.addEventListener("click", () => {
 // Próxima foto / finalizar
 proximaBtn.addEventListener("click", () => avancarFoto());
 
-// Carregar modal de instruções ao abrir página
+// Modal instruções ao abrir página
 window.addEventListener("DOMContentLoaded", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.instrucoes);
