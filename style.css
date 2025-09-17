@@ -170,6 +170,11 @@ button {
   }
 }
 @media (max-width: 320px) {
+.img-instrucoes,
+.fotos-comparacao{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
 .img-details img,
 .img-details2 img{
   width: 60px;
