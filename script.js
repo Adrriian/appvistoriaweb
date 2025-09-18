@@ -123,20 +123,44 @@ function avancarFoto() {
 }
 
 // ---------- UPLOAD IMG BB ----------
-async function enviarParaImgBB(dataUrl) {
-  const formData = new FormData();
-  formData.append("image", dataUrl.split(",")[1]);
-  formData.append("key", IMGBB_KEY);
+async function enviarVistoria() {
+  const urls = [];
 
-  try {
-    const response = await fetch(IMGBB_API, { method: "POST", body: formData });
-    const resultado = await response.json();
-    return resultado.data.url;
-  } catch (err) {
-    console.error("Erro ao enviar para ImgBB:", err);
-    return null;
+  for (let i = 0; i < fotosLinks.length; i++) {
+    if (fotosLinks[i]) {
+      const url = await enviarParaImgBB(fotosLinks[i]);
+      if (url) {
+        urls.push(url);
+
+        // Gerar ID único para a foto
+        const idFoto = gerarId();
+
+        // Enviar para SheetDB
+        const dados = {
+          data: [
+            {
+              id: idFoto,             // <--- ID gerado
+              nome: fotosLista[i].nome,
+              url: url
+            }
+          ]
+        };
+        try {
+          await fetch(SHEETDB_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dados)
+          });
+        } catch (err) {
+          console.error('Erro ao enviar para SheetDB:', err);
+        }
+      }
+    }
   }
-}
+
+  console.log("Fotos enviadas:", urls);
 
 // Mostrar modal de carregamento
 const modalLoading = document.getElementById("modal-loading");
