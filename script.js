@@ -166,14 +166,15 @@ async function enviarVistoria() {
   mostrarModal(modalResultado);
 
   modalResultado.innerHTML = `
+  <div class="result"
   <h2>Vistoria concluída!</h2>
   <p>Todas as fotos foram enviadas com sucesso.</p>
-  <a href="https://wa.me/${WHATSAPP}?text=${MENSAGEM_WHATS}"
+  <a class='button' href="https://wa.me/${WHATSAPP}?text=${MENSAGEM_WHATS}"
      target="_blank"
      class="btn-consultor">
      Falar com consultor
   </a>
-`;
+  </div>`;
 }
 
 // ---------- EVENTOS ----------
