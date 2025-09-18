@@ -242,25 +242,43 @@ irCameraBtn.addEventListener("click", () => {
 
 // Tirar foto
 tirarFotoBtn.addEventListener("click", () => {
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
+  let videoWidth = video.videoWidth;
+  let videoHeight = video.videoHeight;
 
-  // Desenhar vídeo no canvas
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // Mantém sempre em horizontal
+  let canvas = document.createElement("canvas");
+  let ctx = canvas.getContext("2d");
+
+  if (videoHeight > videoWidth) {
+    // Se a câmera estiver em pé, giramos para horizontal
+    canvas.width = videoHeight;
+    canvas.height = videoWidth;
+
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2); // gira 90° anti-horário
+    ctx.drawImage(video, -videoWidth / 2, -videoHeight / 2, videoWidth, videoHeight);
+    ctx.rotate(Math.PI / 2);
+    ctx.translate(-canvas.width / 2, -canvas.height / 2);
+  } else {
+    // Já está em horizontal
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  }
 
   // Adicionar data e hora
   const now = new Date();
-  const dataHora = now.toLocaleString("pt-BR", { hour12: false }); // exemplo: 18/09/2025 14:35:22
+  const dataHora = now.toLocaleString("pt-BR", { hour12: false });
   ctx.font = "40px Arial";
   ctx.fillStyle = "yellow";
   ctx.strokeStyle = "black";
   ctx.lineWidth = 2;
-  ctx.strokeText(dataHora, 20, canvas.height - 30); // contorno preto
-  ctx.fillText(dataHora, 20, canvas.height - 30);   // preenchimento amarelo
 
-  // Gerar dataURL
+  // Sempre no canto inferior esquerdo
+  ctx.strokeText(dataHora, 20, canvas.height - 30);
+  ctx.fillText(dataHora, 20, canvas.height - 30);
+
+  // Salvar imagem
   const dataUrl = canvas.toDataURL("image/jpeg");
 
   fotoTiradaImg.src = dataUrl;
@@ -274,6 +292,7 @@ tirarFotoBtn.addEventListener("click", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
+
 
 
 // Refazer foto
