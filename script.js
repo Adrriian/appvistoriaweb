@@ -46,7 +46,7 @@ let indiceFoto = 0;
 
 // ---------- CONFIGURAÇÃO ----------
 const IMGBB_API = "https://api.imgbb.com/1/upload";
-const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
+const IMGBB_KEY = "50b0055665a34355d1f51c48f90429be"; // sua API Key
 const WHATSAPP = "47984910058"; // seu WhatsApp
 
 // ---------- ELEMENTOS ----------
