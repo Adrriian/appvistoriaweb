@@ -89,47 +89,56 @@
 
 
 <script>
-  // Pegar URLs das fotos da query string
-  const params = new URLSearchParams(window.location.search);
-  const fotos = JSON.parse(params.get('fotos') || '[]'); // fotos = ["url1","url2",...]
+const galeria = document.getElementById('galeria');
+const btnDownload = document.getElementById('baixar-todas');
+let fotos = [];
 
-  const galeria = document.getElementById('galeria');
+// Puxar fotos do SheetDB
+async function carregarFotos() {
+  try {
+    const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
+    const dados = await res.json();
 
-  // Criar imagens na galeria
-  fotos.forEach((url, index) => {
-    const box = document.createElement('div');
-    box.classList.add('foto-box');
+    // Supondo que a coluna com links se chama "imagem"
+    fotos = dados.map(item => item.imagem).filter(url => url);
 
-    const img = document.createElement('img');
-    img.src = url;
-    img.alt = `Foto ${index + 1}`;
+    fotos.forEach((url, index) => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = `Foto ${index + 1}`;
+      galeria.appendChild(img);
+    });
+  } catch (err) {
+    console.error('Erro ao carregar fotos:', err);
+  }
+}
 
-    box.appendChild(img);
-    galeria.appendChild(box);
-  });
-
-  // Botão baixar todas
-  const btnDownload = document.getElementById('baixar-todas');
-  btnDownload.addEventListener('click', async () => {
-    if (fotos.length === 0) {
-      alert('Nenhuma foto para baixar.');
-      return;
+// Download todas fotos
+btnDownload.addEventListener('click', async () => {
+  if (fotos.length === 0) {
+    alert('Nenhuma foto para baixar.');
+    return;
+  }
+  const zip = new JSZip();
+  for (let i = 0; i < fotos.length; i++) {
+    try {
+      const res = await fetch(fotos[i]);
+      const blob = await res.blob();
+      zip.file(`foto_${i + 1}.jpg`, blob);
+    } catch (err) {
+      console.error(`Erro ao baixar a foto ${i + 1}:`, err);
     }
-    const zip = new JSZip();
-    for (let i = 0; i < fotos.length; i++) {
-      try {
-        const res = await fetch(fotos[i]);
-        const blob = await res.blob();
-        zip.file(`foto_${i + 1}.jpg`, blob);
-      } catch (err) {
-        console.error(`Erro ao baixar a foto ${i + 1}:`, err);
-      }
-    }
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'vistoria.zip');
-  });
+  }
+  const content = await zip.generateAsync({ type: 'blob' });
+  saveAs(content, 'vistoria.zip');
+});
+
+// Executa ao carregar a página
+carregarFotos();
 </script>
+
 
 </body>
 </html>
+
 
