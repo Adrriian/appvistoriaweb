@@ -25,7 +25,6 @@
 <button id="deletar-imagens">Deletar imagens</button>
 <div id="galeria"></div>
 
-<!-- JSZip e FileSaver -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
@@ -41,7 +40,7 @@ async function carregarFotos() {
   try {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
-    registros = dados; // salvar para limpar depois
+    registros = dados; // Salvar para limpar depois
 
     fotos = dados.map(item => item.url).filter(url => url);
 
@@ -56,12 +55,12 @@ async function carregarFotos() {
   }
 }
 
-// Limpar os registros na planilha (deixar células vazias)
+// Limpar todas as células (id, nome, url) usando PATCH com filtro id
 async function limparPlanilha() {
   try {
     for (let item of registros) {
       if(item.id){
-        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1/${item.id}`, {
+        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1?id=${item.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ data: { id: '', nome: '', url: '' } })
