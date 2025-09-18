@@ -40,7 +40,7 @@ async function carregarFotos() {
   try {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
-    registros = dados; // Salvar para limpar depois
+    registros = dados; // salvar para limpar depois
 
     fotos = dados.map(item => item.url).filter(url => url);
 
@@ -55,12 +55,12 @@ async function carregarFotos() {
   }
 }
 
-// Limpar todas as células (id, nome, url) usando PATCH com filtro id
+// Limpar todas as células (id, nome, url) usando PATCH correto
 async function limparPlanilha() {
   try {
     for (let item of registros) {
       if(item.id){
-        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1?id=${item.id}`, {
+        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1/id/${item.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ data: { id: '', nome: '', url: '' } })
