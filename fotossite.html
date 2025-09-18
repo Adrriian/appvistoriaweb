@@ -55,21 +55,22 @@ async function carregarFotos() {
 }
 
 // Deletar registros baixados
-async function deletarRegistrosBaixados() {
+async function deletarTodosRegistros() {
   try {
     for (let item of registros) {
-      if(item.url && fotos.includes(item.url) && item.id){
-        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1/${item.id}`, {
+      if(item.url) {
+        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1?url=${encodeURIComponent(item.url)}`, {
           method: 'DELETE'
         });
       }
     }
-    alert('Registros baixados foram removidos da planilha!');
+    alert('Registros baixados foram removidos!');
   } catch(err) {
     console.error('Erro ao deletar registros:', err);
     alert('Erro ao deletar registros. Confira o console.');
   }
 }
+
 
 // Botão baixar todas + deletar registros baixados
 btnDownload.addEventListener('click', async () => {
@@ -105,3 +106,4 @@ carregarFotos();
 </script>
 </body>
 </html>
+
