@@ -37,8 +37,7 @@ async function carregarFotos() {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
     
-    // Salvar registros para deletar depois
-    registros = dados;
+    registros = dados; // salvar para deletar depois
 
     // Pegar os links da coluna "url"
     fotos = dados.map(item => item.url).filter(url => url);
@@ -54,51 +53,48 @@ async function carregarFotos() {
   }
 }
 
-// Deletar registros baixados
-async function deletarTodosRegistros() {
+// Deletar registros baixados filtrando pelo valor da coluna "url"
+async function deletarRegistrosBaixados() {
   try {
     for (let item of registros) {
-      if(item.url) {
+      if(item.url){
         await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1?url=${encodeURIComponent(item.url)}`, {
           method: 'DELETE'
         });
       }
     }
-    alert('Registros baixados foram removidos!');
-  } catch(err) {
+    alert('Registros baixados foram removidos da planilha!');
+    galeria.innerHTML = '';
+    fotos = [];
+  } catch(err){
     console.error('Erro ao deletar registros:', err);
     alert('Erro ao deletar registros. Confira o console.');
   }
 }
 
-
 // Botão baixar todas + deletar registros baixados
 btnDownload.addEventListener('click', async () => {
-  if(fotos.length === 0){ 
+  if(fotos.length === 0){
     alert('Nenhuma foto para baixar.');
-    return; 
+    return;
   }
 
   // 1️⃣ Baixar todas as fotos em ZIP
   const zip = new JSZip();
-  for(let i=0;i<fotos.length;i++){
-    try{
+  for(let i=0; i<fotos.length; i++){
+    try {
       const res = await fetch(fotos[i]);
       const blob = await res.blob();
       zip.file(`foto_${i+1}.jpg`, blob);
-    }catch(err){
+    } catch(err) {
       console.error(`Erro ao baixar a foto ${i+1}:`, err);
     }
   }
   const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
 
-  // 2️⃣ Deletar apenas os registros baixados
+  // 2️⃣ Deletar registros baixados da planilha
   await deletarRegistrosBaixados();
-
-  // Limpar galeria da página
-  galeria.innerHTML = '';
-  fotos = [];
 });
 
 // Executa ao carregar a página
@@ -106,4 +102,3 @@ carregarFotos();
 </script>
 </body>
 </html>
-
