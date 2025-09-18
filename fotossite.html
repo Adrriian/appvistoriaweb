@@ -5,77 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Galeria de Fotos - Vistoria</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #f5f5f5;
-    margin: 0;
-  }
-
-  h1 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
-  #baixar-todas {
-    display: block;
-    margin: 0 auto 20px auto;
-    padding: 12px 24px;
-    font-size: 16px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-
-  #baixar-todas:hover {
-    background-color: #218838;
-  }
-
-  #galeria {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    justify-items: center;
-  }
-
-  .foto-box {
-    position: relative;
-    width: 200px;
-    height: 200px;
-  }
-
-  .foto-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
-  }
-
-  .foto-box span {
-    position: absolute;
-    bottom: 4px;
-    left: 4px;
-    background: rgba(0,0,0,0.6);
-    color: #fff;
-    font-size: 12px;
-    padding: 2px 4px;
-    border-radius: 4px;
-  }
-
-  /* Responsivo */
-  @media (max-width: 800px) {
-    #galeria {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (max-width: 500px) {
-    #galeria {
-      grid-template-columns: 1fr;
-    }
-  }
+  body { font-family: Arial; padding: 20px; background: #f5f5f5; margin: 0; }
+  h1 { text-align: center; margin-bottom: 20px; }
+  #baixar-todas { display: block; margin: 0 auto 20px auto; padding: 12px 24px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; }
+  #baixar-todas:hover { background: #218838; }
+  #galeria { display: grid; grid-template-columns: repeat(3,1fr); gap:5px; justify-items:center; }
+  #galeria img { width:200px; height:200px; object-fit:cover; border-radius:8px; }
+  @media (max-width:800px){ #galeria{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:500px){ #galeria{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -84,28 +21,28 @@
 <button id="baixar-todas">Baixar todas as fotos</button>
 <div id="galeria"></div>
 
+<!-- JSZip e FileSaver -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
 
 <script>
 const galeria = document.getElementById('galeria');
 const btnDownload = document.getElementById('baixar-todas');
 let fotos = [];
 
-// Puxar fotos do SheetDB
+// Função para carregar fotos do SheetDB
 async function carregarFotos() {
   try {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
 
-    // Supondo que a coluna com links se chama "imagem"
+    // Aqui assumimos que a coluna que tem os links se chama "imagem"
     fotos = dados.map(item => item.imagem).filter(url => url);
 
-    fotos.forEach((url, index) => {
+    fotos.forEach((url, i) => {
       const img = document.createElement('img');
       img.src = url;
-      img.alt = `Foto ${index + 1}`;
+      img.alt = `Foto ${i+1}`;
       galeria.appendChild(img);
     });
   } catch (err) {
@@ -113,32 +50,25 @@ async function carregarFotos() {
   }
 }
 
-// Download todas fotos
+// Função para baixar todas as fotos em ZIP
 btnDownload.addEventListener('click', async () => {
-  if (fotos.length === 0) {
-    alert('Nenhuma foto para baixar.');
-    return;
-  }
+  if(fotos.length === 0){ alert('Nenhuma foto para baixar.'); return; }
   const zip = new JSZip();
-  for (let i = 0; i < fotos.length; i++) {
-    try {
+  for(let i=0;i<fotos.length;i++){
+    try{
       const res = await fetch(fotos[i]);
       const blob = await res.blob();
-      zip.file(`foto_${i + 1}.jpg`, blob);
-    } catch (err) {
-      console.error(`Erro ao baixar a foto ${i + 1}:`, err);
+      zip.file(`foto_${i+1}.jpg`, blob);
+    }catch(err){
+      console.error(`Erro ao baixar a foto ${i+1}:`, err);
     }
   }
-  const content = await zip.generateAsync({ type: 'blob' });
+  const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
 });
 
-// Executa ao carregar a página
+// Executa quando a página carrega
 carregarFotos();
 </script>
-
-
 </body>
 </html>
-
-
