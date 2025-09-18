@@ -41,7 +41,7 @@ let fotosLista = [];
 let fotosLinks = [];
 let indiceFoto = 0;
 
-// ---------- CONFIGURAÇÃO DO SITE ----------
+// ---------- CONFIGURAÇÃO ----------
 const IMGBB_API = "https://api.imgbb.com/1/upload";
 const IMGBB_KEY = "5c298eb2a1382aeb9277e4da5696b77d"; // sua API Key
 const WHATSAPP = "47984910058"; // seu WhatsApp
@@ -111,7 +111,7 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    enviarVistoria();
+    mostrarLoading(); // 👉 chama carregamento no final
   } else {
     mostrarFotoAtual();
   }
@@ -133,17 +133,44 @@ async function enviarParaImgBB(dataUrl) {
   }
 }
 
-// Enviar todas as fotos e redirecionar
+// Mostrar modal de carregamento
+const modalLoading = document.getElementById("modal-loading");
+
+function mostrarLoading() {
+  modalOverlay.style.display = "flex";
+  modalLoading.style.display = "flex";
+  enviarVistoria(); // inicia upload automático
+}
+
+// Enviar todas as fotos
 async function enviarVistoria() {
   const urls = [];
+
   for (let i = 0; i < fotosLinks.length; i++) {
-    const url = await enviarParaImgBB(fotosLinks[i]);
-    if (url) urls.push(url);
+    if (fotosLinks[i]) {
+      const url = await enviarParaImgBB(fotosLinks[i]);
+      if (url) urls.push(url);
+    }
   }
+
   console.log("Fotos enviadas:", urls);
 
-  alert("Vistoria concluída! Você será redirecionado para o WhatsApp.");
-  window.location.href = `https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!`;
+  // Termina o carregamento
+  modalLoading.style.display = "none";
+
+  // Mostra botão "Falar com consultor"
+  const modalResultado = modais.resultado;
+  mostrarModal(modalResultado);
+
+  modalResultado.innerHTML = `
+    <h2>Vistoria concluída!</h2>
+    <p>Todas as fotos foram enviadas com sucesso.</p>
+    <a href="https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!"
+       target="_blank"
+       class="btn-consultor">
+       Falar com consultor
+    </a>
+  `;
 }
 
 // ---------- EVENTOS ----------
@@ -204,7 +231,7 @@ tirarFotoBtn.addEventListener("click", () => {
   const dataUrl = canvas.toDataURL("image/jpeg");
 
   fotoTiradaImg.src = dataUrl;
-  fotosLinks[indiceFoto] = dataUrl; // 👉 substitui ou adiciona no índice correto
+  fotosLinks[indiceFoto] = dataUrl;
 
   const fotoAtual = fotosLista[indiceFoto];
   fotoReferenciaResultado.src = fotoAtual.ref || "placeholder.png";
@@ -217,39 +244,23 @@ tirarFotoBtn.addEventListener("click", () => {
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
-  fotosLinks[indiceFoto] = null; // 👉 remove a foto do índice atual
+  fotosLinks[indiceFoto] = null;
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
-// Seleciona o modal de carregamento
-const modalLoading = document.getElementById("modal-loading");
-
-// Função para mostrar modal de carregamento
-function mostrarLoading() {
-  modalOverlay.style.display = "flex";
-  modalLoading.style.display = "flex";
-}
-
-// Alterar evento do botão Próxima / Finalizar
+// Botão próxima / finalizar
 proximaBtn.addEventListener("click", () => {
   if (indiceFoto === fotosLista.length - 1) {
-    // Última foto: fechar modal resultado e abrir carregando
-    modais.resultado.classList.remove("active"); // fecha modal resultado
     mostrarLoading();
-
-    // Aqui você pode chamar a função de envio das fotos
-    enviarVistoria(); // opcional se quiser enviar imediatamente
   } else {
     avancarFoto();
   }
 });
 
-
 // Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("vistoriaAcessada")) {
-    // 👉 Se já acessou antes: mostra os modais normais, mas abre câmera direto
     startCamera();
     mostrarModal(modais.instrucoes);
   } else {
