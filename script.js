@@ -148,17 +148,41 @@ function mostrarLoading() {
 }
 
 // Enviar todas as fotos
-async function enviarVistoria() {
-  const urls = [];
+const SHEETDB_API = "https://sheetdb.io/api/v1/ddnh5c4qor1n1";
 
-  for (let i = 0; i < fotosLinks.length; i++) {
-    if (fotosLinks[i]) {
-      const url = await enviarParaImgBB(fotosLinks[i]);
-      if (url) urls.push(url);
-    }
+// Função para enviar a foto para o ImgBB e, em seguida, registrar no SheetDB
+async function enviarParaImgBB(dataUrl, nomeFoto) {
+  const formData = new FormData();
+  formData.append("image", dataUrl.split(",")[1]);
+  formData.append("key", "50b0055665a34355d1f51c48f90429be"); // sua API Key do ImgBB
+
+  try {
+    const response = await fetch("https://api.imgbb.com/1/upload", {
+      method: "POST",
+      body: formData
+    });
+    const resultado = await response.json();
+    const urlImagem = resultado.data.url;
+
+    // Agora envia para o SheetDB
+    await fetch(SHEETDB_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        data: {
+          nome: nomeFoto,
+          url: urlImagem
+        }
+      })
+    });
+
+    return urlImagem;
+  } catch (err) {
+    console.error("Erro ao enviar para ImgBB ou SheetDB:", err);
+    return null;
   }
+}
 
-  console.log("Fotos enviadas:", urls);
 
   // Termina o carregamento
   modalLoading.style.display = "none";
