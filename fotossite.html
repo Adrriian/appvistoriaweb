@@ -29,12 +29,16 @@
 const galeria = document.getElementById('galeria');
 const btnDownload = document.getElementById('baixar-todas');
 let fotos = [];
+let registros = [];
 
-// Função para carregar fotos do SheetDB
+// Carregar fotos da planilha
 async function carregarFotos() {
   try {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
+    
+    // Salvar registros para depois deletar
+    registros = dados;
 
     // Pegar os links da coluna "url"
     fotos = dados.map(item => item.url).filter(url => url);
@@ -50,7 +54,27 @@ async function carregarFotos() {
   }
 }
 
-// Função para baixar todas as fotos em ZIP e limpar a planilha
+// Função para deletar todos os registros da planilha
+async function limparPlanilha() {
+  try {
+    for (let item of registros) {
+      // Cada item deve ter id fornecido pelo SheetDB
+      if(item.id){
+        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1/${item.id}`, {
+          method: 'DELETE'
+        });
+      }
+    }
+    galeria.innerHTML = '';
+    fotos = [];
+    alert('Planilha limpa com sucesso!');
+  } catch (err) {
+    console.error('Erro ao limpar planilha:', err);
+    alert('Erro ao limpar planilha. Confira o console.');
+  }
+}
+
+// Botão baixar todas + limpar planilha
 btnDownload.addEventListener('click', async () => {
   if(fotos.length === 0){ 
     alert('Nenhuma foto para baixar.');
@@ -71,16 +95,8 @@ btnDownload.addEventListener('click', async () => {
   const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
 
-  // 2️⃣ Apagar registros da planilha (mantendo cabeçalho)
-  try{
-    await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1', { method: 'DELETE' });
-    alert('Planilha limpa com sucesso!');
-    galeria.innerHTML = '';
-    fotos = [];
-  }catch(err){
-    console.error('Erro ao limpar planilha:', err);
-    alert('Erro ao limpar planilha. Confira no console.');
-  }
+  // 2️⃣ Limpar planilha
+  await limparPlanilha();
 });
 
 // Executa ao carregar a página
