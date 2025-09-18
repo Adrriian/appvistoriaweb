@@ -190,6 +190,12 @@ button {
   animation: spin 1s linear infinite;
   margin-bottom: 12px;
 }
+.lista-fotos{
+  width: 90%;
+}
+label{
+  color: #ff5900;
+}
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
