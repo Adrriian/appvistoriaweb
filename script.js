@@ -245,7 +245,22 @@ tirarFotoBtn.addEventListener("click", () => {
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d");
+
+  // Desenhar vídeo no canvas
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Adicionar data e hora
+  const now = new Date();
+  const dataHora = now.toLocaleString("pt-BR", { hour12: false }); // exemplo: 18/09/2025 14:35:22
+  ctx.font = "40px Arial";
+  ctx.fillStyle = "yellow";
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+  ctx.strokeText(dataHora, 20, canvas.height - 30); // contorno preto
+  ctx.fillText(dataHora, 20, canvas.height - 30);   // preenchimento amarelo
+
+  // Gerar dataURL
   const dataUrl = canvas.toDataURL("image/jpeg");
 
   fotoTiradaImg.src = dataUrl;
@@ -259,6 +274,7 @@ tirarFotoBtn.addEventListener("click", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
+
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
