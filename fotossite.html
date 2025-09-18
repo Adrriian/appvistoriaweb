@@ -87,28 +87,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
+
 <script>
   // Pegar URLs das fotos da query string
   const params = new URLSearchParams(window.location.search);
-  const fotos = JSON.parse(params.get('fotos') || '[]');
+  const fotos = JSON.parse(params.get('fotos') || '[]'); // fotos = ["url1","url2",...]
 
   const galeria = document.getElementById('galeria');
 
-  // Criar imagens na galeria com data/hora
-  fotos.forEach((item, index) => {
+  // Criar imagens na galeria
+  fotos.forEach((url, index) => {
     const box = document.createElement('div');
     box.classList.add('foto-box');
 
     const img = document.createElement('img');
-    img.src = item.url || item; // suporta objetos ou strings
+    img.src = url;
     img.alt = `Foto ${index + 1}`;
 
-    const dataHora = document.createElement('span');
-    const dt = new Date(item.dataHora || Date.now());
-    dataHora.textContent = dt.toLocaleString();
-
     box.appendChild(img);
-    box.appendChild(dataHora);
     galeria.appendChild(box);
   });
 
@@ -122,11 +118,9 @@
     const zip = new JSZip();
     for (let i = 0; i < fotos.length; i++) {
       try {
-        const res = await fetch(fotos[i].url || fotos[i]);
+        const res = await fetch(fotos[i]);
         const blob = await res.blob();
-        const dt = new Date(fotos[i].dataHora || Date.now());
-        const nomeArquivo = `foto_${i + 1}_${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}_${dt.getHours()}-${dt.getMinutes()}-${dt.getSeconds()}.jpg`;
-        zip.file(nomeArquivo, blob);
+        zip.file(`foto_${i + 1}.jpg`, blob);
       } catch (err) {
         console.error(`Erro ao baixar a foto ${i + 1}:`, err);
       }
@@ -138,3 +132,4 @@
 
 </body>
 </html>
+
