@@ -101,7 +101,16 @@ button {
   cursor: pointer;
   margin: 8px;
 }
-
+.button {
+  padding: 10px 16px;
+  background: var(--botao);
+  border: none;
+  border-radius: 8px;
+  color: var(--texto);
+  cursor: pointer;
+  margin: 8px;
+  text-decoration: none;
+}
 .opcoes-veiculo button, .lista-fotos button {
   margin: 8px;
 }
