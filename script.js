@@ -78,6 +78,8 @@ const fotoTiradaImg = document.getElementById("foto-tirada");
 const refazerBtn = document.getElementById("refazer");
 const proximaBtn = document.getElementById("proxima");
 const fotoReferenciaResultado = document.getElementById("foto-referencia");
+const btnIniciarEspecifica = document.getElementById("btn-iniciar-especifica");
+
 
 // ---------- FUNÇÕES ----------
 
@@ -197,6 +199,21 @@ veiculoBtns.forEach(btn => {
   });
 });
 
+btnIniciarEspecifica.addEventListener("click", () => {
+  const checkboxes = listaFotosEspecificas.querySelectorAll("input[type=checkbox]:checked");
+  if (checkboxes.length === 0) {
+    alert("Selecione pelo menos uma foto!");
+    return;
+  }
+
+  // Cria lista de fotos filtradas
+  fotosLista = Array.from(checkboxes).map(cb => fotosLista[parseInt(cb.value)]);
+  fotosLinks = [];
+  indiceFoto = 0;
+
+  mostrarFotoAtual(); // inicia o fluxo de tirar foto
+});
+
 // Todas as fotos
 btnTodas.addEventListener("click", () => {
   indiceFoto = 0;
@@ -208,17 +225,14 @@ btnTodas.addEventListener("click", () => {
 btnEspecifica.addEventListener("click", () => {
   listaFotosEspecificas.innerHTML = "";
   fotosLista.forEach((f, i) => {
-    const b = document.createElement("button");
-    b.textContent = f.nome;
-    b.addEventListener("click", () => {
-      indiceFoto = i;
-      fotosLinks = [];
-      mostrarFotoAtual();
-    });
-    listaFotosEspecificas.appendChild(b);
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${i}"> ${f.nome}`;
+    listaFotosEspecificas.appendChild(label);
+    listaFotosEspecificas.appendChild(document.createElement("br"));
   });
   mostrarModal(modais.especifica);
 });
+
 
 // Ir para câmera
 irCameraBtn.addEventListener("click", () => {
