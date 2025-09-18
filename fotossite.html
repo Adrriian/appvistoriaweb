@@ -36,7 +36,7 @@ async function carregarFotos() {
   try {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
-    registros = dados; // Salvar para deletar depois
+    registros = dados; // Salvar para atualizar depois
 
     fotos = dados.map(item => item.url).filter(url => url);
 
@@ -51,26 +51,28 @@ async function carregarFotos() {
   }
 }
 
-// Deletar todos os registros via id
-async function deletarTodosRegistros() {
+// Atualizar registros para ficar vazio
+async function limparRegistros() {
   try {
     for (let item of registros) {
       if(item.id) {
         await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1/${item.id}`, {
-          method: 'DELETE'
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: { id: '', nome: '', url: '' } })
         });
       }
     }
+    alert('Todos os registros foram limpos!');
     galeria.innerHTML = '';
     fotos = [];
-    alert('Todos os registros foram apagados da planilha!');
-  } catch (err) {
-    console.error('Erro ao deletar registros:', err);
-    alert('Erro ao apagar registros. Confira o console.');
+  } catch(err) {
+    console.error('Erro ao limpar registros:', err);
+    alert('Erro ao limpar registros. Confira o console.');
   }
 }
 
-// Botão baixar todas + deletar registros
+// Botão baixar todas + limpar registros
 btnDownload.addEventListener('click', async () => {
   if(fotos.length === 0){
     alert('Nenhuma foto para baixar.');
@@ -91,8 +93,8 @@ btnDownload.addEventListener('click', async () => {
   const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
 
-  // 2️⃣ Deletar todos os registros da planilha
-  await deletarTodosRegistros();
+  // 2️⃣ Limpar registros da planilha
+  await limparRegistros();
 });
 
 // Executa ao carregar a página
