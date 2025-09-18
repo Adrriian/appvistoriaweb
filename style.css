@@ -191,6 +191,7 @@ button {
   margin-bottom: 12px;
 }
 .lista-fotos{
+  overflow-y: scroll;
   width: 90%;
 }
 label{
