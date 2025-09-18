@@ -35,6 +35,7 @@ const fotosCaminhao = [
   { nome: "Motor", ref: "placeholder.png" },
   { nome: "Chassi", ref: "placeholder.png" }
 ];
+
 const MENSAGEM_WHATS = encodeURIComponent(
   "Olá, acabei de realizar uma vistoria! Confira as fotos no link abaixo:\nhttps://appvistoriaweb.netlify.app/fotossite"
 );
@@ -48,6 +49,7 @@ let indiceFoto = 0;
 const IMGBB_API = "https://api.imgbb.com/1/upload";
 const IMGBB_KEY = "50b0055665a34355d1f51c48f90429be"; // sua API Key
 const WHATSAPP = "47984910058"; // seu WhatsApp
+const SHEETDB_API = "https://sheetdb.io/api/v1/ddnh5c4qor1n1";
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -80,6 +82,7 @@ const proximaBtn = document.getElementById("proxima");
 const fotoReferenciaResultado = document.getElementById("foto-referencia");
 const btnIniciarEspecifica = document.getElementById("btn-iniciar-especifica");
 
+const modalLoading = document.getElementById("modal-loading");
 
 // ---------- FUNÇÕES ----------
 
@@ -116,13 +119,36 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    mostrarLoading(); // 👉 chama carregamento no final
+    mostrarLoading(); // chama carregamento no final
   } else {
     mostrarFotoAtual();
   }
 }
 
 // ---------- UPLOAD IMG BB ----------
+async function enviarParaImgBB(dataUrl) {
+  const formData = new FormData();
+  formData.append("image", dataUrl.split(",")[1]);
+  formData.append("key", IMGBB_KEY);
+
+  try {
+    const response = await fetch(IMGBB_API, { method: "POST", body: formData });
+    const resultado = await response.json();
+    return resultado.data.url;
+  } catch (err) {
+    console.error("Erro ao enviar para ImgBB:", err);
+    return null;
+  }
+}
+
+// Mostrar modal de carregamento
+function mostrarLoading() {
+  modalOverlay.style.display = "flex";
+  modalLoading.style.display = "flex";
+  enviarVistoria(); // inicia upload automático
+}
+
+// Enviar todas as fotos
 async function enviarVistoria() {
   const urls = [];
 
@@ -133,13 +159,13 @@ async function enviarVistoria() {
         urls.push(url);
 
         // Gerar ID único para a foto
-        const idFoto = gerarId();
+        const fotoId = 'foto_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
 
         // Enviar para SheetDB
         const dados = {
           data: [
             {
-              id: idFoto,             // <--- ID gerado
+              id: fotoId,
               nome: fotosLista[i].nome,
               url: url
             }
@@ -148,9 +174,7 @@ async function enviarVistoria() {
         try {
           await fetch(SHEETDB_API, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dados)
           });
         } catch (err) {
@@ -162,55 +186,6 @@ async function enviarVistoria() {
 
   console.log("Fotos enviadas:", urls);
 
-// Mostrar modal de carregamento
-const modalLoading = document.getElementById("modal-loading");
-
-function mostrarLoading() {
-  modalOverlay.style.display = "flex";
-  modalLoading.style.display = "flex";
-  enviarVistoria(); // inicia upload automático
-}
-
-// Enviar todas as fotos
-const SHEETDB_API = "https://sheetdb.io/api/v1/ddnh5c4qor1n1";
-
-// Função para enviar todas as fotos para ImgBB e SheetDB
-async function enviarVistoria() {
-  const urls = [];
-
-  for (let i = 0; i < fotosLinks.length; i++) {
-    if (fotosLinks[i]) {
-      const url = await enviarParaImgBB(fotosLinks[i]);
-      if (url) {
-        urls.push(url);
-
-        // Enviar para SheetDB
-        const dados = {
-          data: [
-            {
-              nome: fotosLista[i].nome,
-              url: url
-            }
-          ]
-        };
-        try {
-          await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(dados)
-          });
-        } catch (err) {
-          console.error('Erro ao enviar para SheetDB:', err);
-        }
-      }
-    }
-  }
-
-  console.log("Fotos enviadas:", urls);
-
-  // Termina o carregamento
   modalLoading.style.display = "none";
 
   // Mostra botão "Falar com consultor"
@@ -222,13 +197,11 @@ async function enviarVistoria() {
     <h2>Vistoria concluída!</h2>
     <p>Todas as fotos foram enviadas com sucesso.</p>
     <a class='button' href="https://wa.me/${WHATSAPP}?text=${MENSAGEM_WHATS}"
-       target="_blank"
-       class="btn-consultor">
+       target="_blank">
        Falar com consultor
     </a>
   </div>`;
 }
-
 
 // ---------- EVENTOS ----------
 
@@ -257,12 +230,11 @@ btnIniciarEspecifica.addEventListener("click", () => {
     return;
   }
 
-  // Cria lista de fotos filtradas
   fotosLista = Array.from(checkboxes).map(cb => fotosLista[parseInt(cb.value)]);
   fotosLinks = [];
   indiceFoto = 0;
 
-  mostrarFotoAtual(); // inicia o fluxo de tirar foto
+  mostrarFotoAtual();
 });
 
 // Todas as fotos
@@ -284,7 +256,6 @@ btnEspecifica.addEventListener("click", () => {
   mostrarModal(modais.especifica);
 });
 
-
 // Ir para câmera
 irCameraBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
@@ -293,45 +264,36 @@ irCameraBtn.addEventListener("click", () => {
 
 // Tirar foto
 tirarFotoBtn.addEventListener("click", () => {
-  let videoWidth = video.videoWidth;
-  let videoHeight = video.videoHeight;
-
-  // Mantém sempre em horizontal
-  let canvas = document.createElement("canvas");
-  let ctx = canvas.getContext("2d");
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const videoWidth = video.videoWidth;
+  const videoHeight = video.videoHeight;
 
   if (videoHeight > videoWidth) {
-    // Se a câmera estiver em pé, giramos para horizontal
     canvas.width = videoHeight;
     canvas.height = videoWidth;
-
     ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate(-Math.PI / 2); // gira 90° anti-horário
+    ctx.rotate(-Math.PI / 2);
     ctx.drawImage(video, -videoWidth / 2, -videoHeight / 2, videoWidth, videoHeight);
     ctx.rotate(Math.PI / 2);
     ctx.translate(-canvas.width / 2, -canvas.height / 2);
   } else {
-    // Já está em horizontal
     canvas.width = videoWidth;
     canvas.height = videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   }
 
-  // Adicionar data e hora
+  // Data e hora
   const now = new Date();
   const dataHora = now.toLocaleString("pt-BR", { hour12: false });
   ctx.font = "40px Arial";
   ctx.fillStyle = "yellow";
   ctx.strokeStyle = "black";
   ctx.lineWidth = 2;
-
-  // Sempre no canto inferior esquerdo
   ctx.strokeText(dataHora, 20, canvas.height - 30);
   ctx.fillText(dataHora, 20, canvas.height - 30);
 
-  // Salvar imagem
   const dataUrl = canvas.toDataURL("image/jpeg");
-
   fotoTiradaImg.src = dataUrl;
   fotosLinks[indiceFoto] = dataUrl;
 
@@ -343,8 +305,6 @@ tirarFotoBtn.addEventListener("click", () => {
   modalOverlay.style.display = "flex";
   mostrarModal(modais.resultado);
 });
-
-
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
