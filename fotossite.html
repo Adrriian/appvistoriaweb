@@ -7,11 +7,8 @@
 <style>
   body { font-family: Arial; padding: 20px; background: #f5f5f5; margin: 0; }
   h1 { text-align: center; margin-bottom: 20px; }
-  button { display: block; margin: 0 auto 20px auto; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
-  #baixar-todas { background: #28a745; color: white; }
+  #baixar-todas { display: block; margin: 0 auto 20px auto; padding: 12px 24px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; }
   #baixar-todas:hover { background: #218838; }
-  #deletar-imagens { background: #dc3545; color: white; display: none; }
-  #deletar-imagens:hover { background: #c82333; }
   #galeria { display: grid; grid-template-columns: repeat(3,1fr); gap:5px; justify-items:center; }
   #galeria img { width:200px; height:200px; object-fit:cover; border-radius:8px; }
   @media (max-width:800px){ #galeria{grid-template-columns:repeat(2,1fr);} }
@@ -22,7 +19,6 @@
 
 <h1>Galeria de Fotos da Vistoria</h1>
 <button id="baixar-todas">Baixar todas as fotos</button>
-<button id="deletar-imagens">Deletar imagens</button>
 <div id="galeria"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -31,7 +27,6 @@
 <script>
 const galeria = document.getElementById('galeria');
 const btnDownload = document.getElementById('baixar-todas');
-const btnDelete = document.getElementById('deletar-imagens');
 let fotos = [];
 let registros = [];
 
@@ -40,7 +35,7 @@ async function carregarFotos() {
   try {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
-    registros = dados; // salvar para limpar depois
+    registros = dados;
 
     fotos = dados.map(item => item.url).filter(url => url);
 
@@ -55,7 +50,7 @@ async function carregarFotos() {
   }
 }
 
-// Limpar todas as células (id, nome, url) usando PATCH correto
+// Limpar todas as células (id, nome, url)
 async function limparPlanilha() {
   try {
     for (let item of registros) {
@@ -67,17 +62,16 @@ async function limparPlanilha() {
         });
       }
     }
-    alert('Planilha atualizada: todas as células limpas!');
     galeria.innerHTML = '';
     fotos = [];
-    btnDelete.style.display = 'none';
+    alert('Fotos baixadas e planilha limpa!');
   } catch(err) {
     console.error('Erro ao limpar planilha:', err);
     alert('Erro ao limpar planilha. Confira o console.');
   }
 }
 
-// Botão baixar todas
+// Botão baixar todas + limpar planilha
 btnDownload.addEventListener('click', async () => {
   if(fotos.length === 0){
     alert('Nenhuma foto para baixar.');
@@ -94,15 +88,11 @@ btnDownload.addEventListener('click', async () => {
       console.error(`Erro ao baixar a foto ${i+1}:`, err);
     }
   }
+
   const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
 
-  // Exibir botão "Deletar imagens"
-  btnDelete.style.display = 'block';
-});
-
-// Botão deletar imagens
-btnDelete.addEventListener('click', async () => {
+  // Depois de baixar, limpar a planilha
   await limparPlanilha();
 });
 
