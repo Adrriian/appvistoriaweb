@@ -37,7 +37,8 @@ async function carregarFotos() {
     const dados = await res.json();
 
     // Aqui assumimos que a coluna que tem os links se chama "imagem"
-    fotos = dados.map(item => item.imagem).filter(url => url);
+    // Pegar os links da coluna "url"
+      fotos = dados.map(item => item.url).filter(url => url);
 
     fotos.forEach((url, i) => {
       const img = document.createElement('img');
@@ -72,3 +73,4 @@ carregarFotos();
 </script>
 </body>
 </html>
+
