@@ -7,8 +7,11 @@
 <style>
   body { font-family: Arial; padding: 20px; background: #f5f5f5; margin: 0; }
   h1 { text-align: center; margin-bottom: 20px; }
-  #baixar-todas { display: block; margin: 0 auto 20px auto; padding: 12px 24px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; }
+  button { display: block; margin: 0 auto 20px auto; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
+  #baixar-todas { background: #28a745; color: white; }
   #baixar-todas:hover { background: #218838; }
+  #deletar-imagens { background: #dc3545; color: white; display: none; }
+  #deletar-imagens:hover { background: #c82333; }
   #galeria { display: grid; grid-template-columns: repeat(3,1fr); gap:5px; justify-items:center; }
   #galeria img { width:200px; height:200px; object-fit:cover; border-radius:8px; }
   @media (max-width:800px){ #galeria{grid-template-columns:repeat(2,1fr);} }
@@ -19,6 +22,7 @@
 
 <h1>Galeria de Fotos da Vistoria</h1>
 <button id="baixar-todas">Baixar todas as fotos</button>
+<button id="deletar-imagens">Deletar imagens</button>
 <div id="galeria"></div>
 
 <!-- JSZip e FileSaver -->
@@ -28,6 +32,7 @@
 <script>
 const galeria = document.getElementById('galeria');
 const btnDownload = document.getElementById('baixar-todas');
+const btnDelete = document.getElementById('deletar-imagens');
 let fotos = [];
 let registros = [];
 
@@ -36,7 +41,7 @@ async function carregarFotos() {
   try {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
-    registros = dados; // Salvar para atualizar depois
+    registros = dados; // salvar para limpar depois
 
     fotos = dados.map(item => item.url).filter(url => url);
 
@@ -51,11 +56,11 @@ async function carregarFotos() {
   }
 }
 
-// Atualizar registros para ficar vazio
-async function limparRegistros() {
+// Limpar os registros na planilha (deixar células vazias)
+async function limparPlanilha() {
   try {
     for (let item of registros) {
-      if(item.id) {
+      if(item.id){
         await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1/${item.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -63,23 +68,23 @@ async function limparRegistros() {
         });
       }
     }
-    alert('Todos os registros foram limpos!');
+    alert('Planilha atualizada: todas as células limpas!');
     galeria.innerHTML = '';
     fotos = [];
+    btnDelete.style.display = 'none';
   } catch(err) {
-    console.error('Erro ao limpar registros:', err);
-    alert('Erro ao limpar registros. Confira o console.');
+    console.error('Erro ao limpar planilha:', err);
+    alert('Erro ao limpar planilha. Confira o console.');
   }
 }
 
-// Botão baixar todas + limpar registros
+// Botão baixar todas
 btnDownload.addEventListener('click', async () => {
   if(fotos.length === 0){
     alert('Nenhuma foto para baixar.');
     return;
   }
 
-  // 1️⃣ Baixar todas as fotos em ZIP
   const zip = new JSZip();
   for(let i=0; i<fotos.length; i++){
     try {
@@ -93,8 +98,13 @@ btnDownload.addEventListener('click', async () => {
   const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
 
-  // 2️⃣ Limpar registros da planilha
-  await limparRegistros();
+  // Exibir botão "Deletar imagens"
+  btnDelete.style.display = 'block';
+});
+
+// Botão deletar imagens
+btnDelete.addEventListener('click', async () => {
+  await limparPlanilha();
 });
 
 // Executa ao carregar a página
