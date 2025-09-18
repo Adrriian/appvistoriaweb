@@ -35,6 +35,9 @@ const fotosCaminhao = [
   { nome: "Motor", ref: "placeholder.png" },
   { nome: "Chassi", ref: "placeholder.png" }
 ];
+const MENSAGEM_WHATS = encodeURIComponent(
+  "Olá, acabei de realizar uma vistoria! Confira as fotos no link abaixo:\nhttps://appvistoriaweb.netlify.app/fotossite"
+);
 
 // ---------- VARIÁVEIS ----------
 let fotosLista = [];
@@ -163,14 +166,14 @@ async function enviarVistoria() {
   mostrarModal(modalResultado);
 
   modalResultado.innerHTML = `
-    <h2>Vistoria concluída!</h2>
-    <p>Todas as fotos foram enviadas com sucesso.</p>
-    <a href="https://wa.me/${WHATSAPP}?text=Olá,%20acabei%20de%20realizar%20uma%20vistoria!"
-       target="_blank"
-       class="btn-consultor">
-       Falar com consultor
-    </a>
-  `;
+  <h2>Vistoria concluída!</h2>
+  <p>Todas as fotos foram enviadas com sucesso.</p>
+  <a href="https://wa.me/${WHATSAPP}?text=${MENSAGEM_WHATS}"
+     target="_blank"
+     class="btn-consultor">
+     Falar com consultor
+  </a>
+`;
 }
 
 // ---------- EVENTOS ----------
