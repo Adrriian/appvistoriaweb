@@ -36,9 +36,8 @@ async function carregarFotos() {
     const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
     const dados = await res.json();
 
-    // Aqui assumimos que a coluna que tem os links se chama "imagem"
     // Pegar os links da coluna "url"
-      fotos = dados.map(item => item.url).filter(url => url);
+    fotos = dados.map(item => item.url).filter(url => url);
 
     fotos.forEach((url, i) => {
       const img = document.createElement('img');
@@ -51,9 +50,14 @@ async function carregarFotos() {
   }
 }
 
-// Função para baixar todas as fotos em ZIP
+// Função para baixar todas as fotos em ZIP e limpar a planilha
 btnDownload.addEventListener('click', async () => {
-  if(fotos.length === 0){ alert('Nenhuma foto para baixar.'); return; }
+  if(fotos.length === 0){ 
+    alert('Nenhuma foto para baixar.');
+    return; 
+  }
+
+  // 1️⃣ Baixar todas as fotos em ZIP
   const zip = new JSZip();
   for(let i=0;i<fotos.length;i++){
     try{
@@ -66,11 +70,21 @@ btnDownload.addEventListener('click', async () => {
   }
   const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
+
+  // 2️⃣ Apagar registros da planilha (mantendo cabeçalho)
+  try{
+    await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1', { method: 'DELETE' });
+    alert('Planilha limpa com sucesso!');
+    galeria.innerHTML = '';
+    fotos = [];
+  }catch(err){
+    console.error('Erro ao limpar planilha:', err);
+    alert('Erro ao limpar planilha. Confira no console.');
+  }
 });
 
-// Executa quando a página carrega
+// Executa ao carregar a página
 carregarFotos();
 </script>
 </body>
 </html>
-
