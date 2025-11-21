@@ -279,11 +279,11 @@ img,
   }
 
   .ft_rf {
-    max-width: 150px;
+    max-width: 130px;
   }
 
   .referencia-img {
-    max-width: 130px;
+    max-width: 100px;
   }
 
   /* Evita quebra dos grids em modo deitado */
