@@ -27,13 +27,21 @@
 <script>
 const galeria = document.getElementById('galeria');
 const btnDownload = document.getElementById('baixar-todas');
+const NEON_API = "https://ep-jolly-wildflower-ac6kwkbd.apirest.sa-east-1.aws.neon.tech/neondb/rest/v1/fotos";
+const NEON_KEY = "SUA_API_KEY_AQUI";
+
 let fotos = [];
 let registros = [];
 
-// Carregar fotos da planilha
+// Carregar fotos do Neon
 async function carregarFotos() {
   try {
-    const res = await fetch('https://sheetdb.io/api/v1/ddnh5c4qor1n1');
+    const res = await fetch(NEON_API, {
+      headers: {
+        'apikey': NEON_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
     const dados = await res.json();
     registros = dados;
 
@@ -46,32 +54,34 @@ async function carregarFotos() {
       galeria.appendChild(img);
     });
   } catch (err) {
-    console.error('Erro ao carregar fotos:', err);
+    console.error('Erro ao carregar fotos do Neon:', err);
   }
 }
 
-// Limpar todas as células (id, nome, url)
-async function limparPlanilha() {
+// Deletar registros do Neon
+async function deletarRegistros() {
   try {
     for (let item of registros) {
       if(item.id){
-        await fetch(`https://sheetdb.io/api/v1/ddnh5c4qor1n1/id/${item.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data: { id: '', nome: '', url: '' } })
+        await fetch(`${NEON_API}?id=eq.${item.id}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': NEON_KEY,
+            'Content-Type': 'application/json'
+          }
         });
       }
     }
     galeria.innerHTML = '';
     fotos = [];
-    alert('Fotos baixadas e planilha limpa!');
+    alert('Fotos baixadas e registros do Neon apagados!');
   } catch(err) {
-    console.error('Erro ao limpar planilha:', err);
-    alert('Erro ao limpar planilha. Confira o console.');
+    console.error('Erro ao deletar registros do Neon:', err);
+    alert('Erro ao apagar registros. Confira o console.');
   }
 }
 
-// Botão baixar todas + limpar planilha
+// Botão baixar todas + limpar Neon
 btnDownload.addEventListener('click', async () => {
   if(fotos.length === 0){
     alert('Nenhuma foto para baixar.');
@@ -92,8 +102,8 @@ btnDownload.addEventListener('click', async () => {
   const content = await zip.generateAsync({ type:'blob' });
   saveAs(content, 'vistoria.zip');
 
-  // Depois de baixar, limpar a planilha
-  await limparPlanilha();
+  // Depois de baixar, deletar registros no Neon
+  await deletarRegistros();
 });
 
 // Executa ao carregar a página
