@@ -56,7 +56,7 @@ let indiceFoto = 0;
 // ---------- CONFIGURAÇÃO ----------
 const WHATSAPP = "47984910058"; // seu WhatsApp
 const NEON_API = "https://ep-jolly-wildflower-ac6kwkbd.apirest.sa-east-1.aws.neon.tech/neondb/rest/v1/vistoria";
-const NEON_KEY = "SUA_API_KEY_SECRETA_AQUI"; // coloque sua chave Neon aqui se necessário
+const NEON_KEY = "napi_tv66zvkzyxhl9cwmlyal2txtl1kfqoe86z3cyvsoez0wpm4v66gal75f10z441v2"; // coloque sua chave Neon aqui se necessário
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
