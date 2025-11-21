@@ -295,8 +295,8 @@ tirarFotoBtn.addEventListener("click", () => {
   // Data e hora
   const now = new Date();
   const dataHora = now.toLocaleString("pt-BR", { hour12: false });
-  ctx.font = "40px Arial";
-  ctx.fillStyle = "yellow";
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "white";
   ctx.strokeStyle = "black";
   ctx.lineWidth = 2;
   ctx.strokeText(dataHora, 20, canvas.height - 30);
