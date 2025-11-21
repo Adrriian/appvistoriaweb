@@ -267,15 +267,15 @@ btnEspecifica.addEventListener("click", () => {
 
 // Ir para câmera
 irCameraBtn.addEventListener("click", () => {
-  document.body.classList.add("camera-open"); // libera rotação
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
 
+
 // Tirar foto
 tirarFotoBtn.addEventListener("click", () => {
-  document.body.classList.remove("camera-open"); // volta a bloquear rotação
+ 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   const videoWidth = video.videoWidth;
@@ -320,7 +320,6 @@ tirarFotoBtn.addEventListener("click", () => {
 
 // Refazer foto
 refazerBtn.addEventListener("click", () => {
-  document.body.classList.add("camera-open"); // mantém rotação liberada
   fotosLinks[indiceFoto] = null;
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
