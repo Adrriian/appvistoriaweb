@@ -247,3 +247,55 @@ label{
   border-radius: 10px;
 }
 }
+
+/* ====== RESPONSIVIDADE REAL PARA AS IMAGENS ====== */
+
+img,
+.ft_rf,
+.foto-box img,
+.img-details img,
+.img-details2 img,
+.referencia-img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fotos que eram grandes demais */
+.ft_rf {
+  max-width: 280px;
+}
+
+.referencia-img {
+  max-width: 220px;
+}
+
+/* Landscape (celular deitado) */
+@media (orientation: landscape) {
+
+  .img-details img,
+  .img-details2 img,
+  .foto-box img {
+    max-width: 120px;
+  }
+
+  .ft_rf {
+    max-width: 200px;
+  }
+
+  .referencia-img {
+    max-width: 180px;
+  }
+
+  /* Evita quebra dos grids em modo deitado */
+  .img-instrucoes,
+  .fotos-comparacao {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .modal-content {
+    height: auto;
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+}
