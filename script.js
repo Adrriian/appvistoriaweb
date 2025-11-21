@@ -55,7 +55,8 @@ let indiceFoto = 0;
 
 // ---------- CONFIGURAÇÃO ----------
 const WHATSAPP = "47984910058"; // seu WhatsApp
-const API_VISTORIA = "https://SEU-ENDERECO-DA-API/salvarFoto"; // sua API Neon
+const NEON_API = "https://ep-jolly-wildflower-ac6kwkbd.apirest.sa-east-1.aws.neon.tech/neondb/rest/v1/vistoria";
+const NEON_KEY = "SUA_API_KEY_SECRETA_AQUI"; // coloque sua chave Neon aqui se necessário
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -125,7 +126,7 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    mostrarLoading();
+    mostrarLoading(); // chama carregamento no final
   } else {
     mostrarFotoAtual();
   }
@@ -135,10 +136,10 @@ function avancarFoto() {
 function mostrarLoading() {
   modalOverlay.style.display = "flex";
   modalLoading.style.display = "flex";
-  enviarVistoria(); // envia direto para API
+  enviarVistoriaNeon(); // inicia envio direto para Neon
 }
 
-// Enviar todas as fotos direto para API
+// ---------- ENVIO PARA NEON ----------
 async function enviarVistoriaNeon() {
   for (let i = 0; i < fotosLinks.length; i++) {
     if (!fotosLinks[i]) continue;
@@ -147,15 +148,15 @@ async function enviarVistoriaNeon() {
     const dados = {
       id: 'foto_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
       nome: fotoAtual.nome,
-      imagem_base64: fotosLinks[i] // já está em dataURL
+      imagem_base64: fotosLinks[i] // dataURL completo
     };
 
     try {
-      await fetch("https://ep-jolly-wildflower-ac6kwkbd.apirest.sa-east-1.aws.neon.tech/neondb/rest/v1/vistoria", {
+      await fetch(NEON_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': 'SUA_API_KEY_SECRETA_AQUI' // se a Neon pedir API key
+          'apikey': NEON_KEY
         },
         body: JSON.stringify(dados)
       });
@@ -166,34 +167,30 @@ async function enviarVistoriaNeon() {
   }
 
   modalLoading.style.display = "none";
-  mostrarModal(modais.resultado);
-}
-
-
-  modalLoading.style.display = "none";
 
   const modalResultado = modais.resultado;
   mostrarModal(modalResultado);
 
   modalResultado.innerHTML = `
-  <div class="result">
-    <h2>Vistoria concluída!</h2>
-    <p>Todas as fotos foram enviadas com sucesso.</p>
-    <a class='button' href="https://wa.me/${WHATSAPP}?text=${MENSAGEM_WHATS}"
-       target="_blank">
-       Falar com consultor
-    </a>
-  </div>`;
+    <div class="result">
+      <h2>Vistoria concluída!</h2>
+      <p>Todas as fotos foram enviadas com sucesso.</p>
+      <a class='button' href="https://wa.me/${WHATSAPP}?text=${MENSAGEM_WHATS}" target="_blank">
+        Falar com consultor
+      </a>
+    </div>`;
 }
 
 // ---------- EVENTOS ----------
 
+// Iniciar vistoria
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
   startCamera();
   localStorage.setItem("vistoriaAcessada", "true");
 });
 
+// Escolher veículo
 veiculoBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const tipo = btn.getAttribute("data-veiculo");
@@ -218,12 +215,14 @@ btnIniciarEspecifica.addEventListener("click", () => {
   mostrarFotoAtual();
 });
 
+// Todas as fotos
 btnTodas.addEventListener("click", () => {
   indiceFoto = 0;
   fotosLinks = [];
   mostrarFotoAtual();
 });
 
+// Foto específica
 btnEspecifica.addEventListener("click", () => {
   listaFotosEspecificas.innerHTML = "";
   fotosLista.forEach((f, i) => {
@@ -235,11 +234,13 @@ btnEspecifica.addEventListener("click", () => {
   mostrarModal(modais.especifica);
 });
 
+// Ir para câmera
 irCameraBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
+// Tirar foto
 tirarFotoBtn.addEventListener("click", () => {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -282,12 +283,14 @@ tirarFotoBtn.addEventListener("click", () => {
   mostrarModal(modais.resultado);
 });
 
+// Refazer foto
 refazerBtn.addEventListener("click", () => {
   fotosLinks[indiceFoto] = null;
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
+// Botão próxima / finalizar
 proximaBtn.addEventListener("click", () => {
   if (indiceFoto === fotosLista.length - 1) {
     mostrarLoading();
@@ -296,6 +299,7 @@ proximaBtn.addEventListener("click", () => {
   }
 });
 
+// Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("vistoriaAcessada")) {
     startCamera();
