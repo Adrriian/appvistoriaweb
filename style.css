@@ -336,14 +336,5 @@ img,
     padding: 6px 10px; /* botões menores */
     font-size: 14px;
   }
-    body:not(.camera-open) {
-        transform: rotate(90deg);
-        transform-origin: left top;
-        width: 100vh;
-        height: 100vw;
-        overflow: hidden;
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
+  
 }
