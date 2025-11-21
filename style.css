@@ -298,4 +298,42 @@ img,
     max-height: 90dvh;
     overflow-y: auto;
   }
+  #modal-resultado .result {
+    padding: 4px;
+    gap: 4px;
+  }
+
+  #modal-resultado h2 {
+    margin: 2px 0;
+    font-size: 16px;
+  }
+
+  #modal-resultado .fotos-comparacao {
+    gap: 4px;
+    padding: 2px;
+  }
+
+  #modal-resultado .foto-box {
+    margin: 2px 0;
+  }
+
+  #modal-resultado .foto-box h3 {
+    margin: 2px 0;
+    font-size: 12px;
+  }
+
+  #modal-resultado img {
+    max-width: 100px; /* pode ajustar se quiser maior ou menor */
+  }
+
+  #modal-resultado .botoes-resultado {
+    margin-top: 4px;
+    gap: 6px;
+  }
+
+  #modal-resultado button {
+    margin: 2px 0;
+    padding: 6px 10px; /* botões menores */
+    font-size: 14px;
+  }
 }
