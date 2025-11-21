@@ -24,9 +24,17 @@ const fotosCarro = [
 ];
 
 const fotosMoto = [
-  { nome: "Frente", ref: "placeholder.png" },
-  { nome: "Traseira", ref: "placeholder.png" },
-  { nome: "Chassi", ref: "placeholder.png" }
+  { nome: "Frente", ref:"img/moto/frente.JPEG" },
+  { nome: "Frente Lado 1", ref: "img/moto/frentelado1.JPEG" },
+  { nome: "Frente lado 2", ref: "img/moto/frentelado2.JPEG" },
+  { nome: "Pneu Da frente", ref: "img/moto/pneufrente.JPEG" },
+  { nome: "Kilometragem", ref: "img/moto/kilometragem.JPEG"},
+  { nome: "Traseira", ref: "img/moto/traseira.JPEG" },
+  { nome: "Traseira Lado 1", ref: "img/moto/traseiralado1.JPEG" },
+  { nome: "Traseira Lado 2", ref: "img/moto/traseiralado2.JPEG" },
+  { nome: "Pneu Traseiro", ref: "img/moto/pneutraseiro.JPEG" },
+  { nome: "Placa", ref: "img/moto/placa.JPEG" },
+  { nome: "Chassi", ref: "img/moto/chassi.JPEG" }
 ];
 
 const fotosCaminhao = [
@@ -34,6 +42,7 @@ const fotosCaminhao = [
   { nome: "Traseira", ref: "placeholder.png" },
   { nome: "Motor", ref: "placeholder.png" },
   { nome: "Chassi", ref: "placeholder.png" }
+  
 ];
 
 const MENSAGEM_WHATS = encodeURIComponent(
