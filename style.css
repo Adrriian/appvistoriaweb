@@ -337,4 +337,7 @@ img,
     font-size: 14px;
   }
   
+#camera-container video {
+   max-width: 300px; /* ajuste o tamanho */
+}
 }
