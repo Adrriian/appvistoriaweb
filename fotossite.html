@@ -23,82 +23,107 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
 <script>
-const NEON_API = "https://ep-jolly-wildflower-ac6kwkbd.apirest.sa-east-1.aws.neon.tech/neondb/rest/v1/fotos";
-const NEON_KEY = "SUA_API_KEY_AQUI";
-
-let registros = [];
-let fotos = [];
-
 const galeria = document.getElementById('galeria');
 const btnDownload = document.getElementById('baixar-todas');
 
+// URL da tabela do Neon
+const NEON_API = "https://ep-jolly-wildflower-ac6kwkbd.apirest.sa-east-1.aws.neon.tech/neondb/rest/v1/fotos";
+const NEON_KEY = "INSIRA_SUA_API_KEY_AQUI"; // coloque sua chave real
+
+let fotos = [];
+let registros = [];
+
+// Função para carregar fotos
 async function carregarFotos() {
   try {
     const res = await fetch(NEON_API, {
       method: 'GET',
       headers: {
-        'apikey': NEON_KEY,
-        'Authorization': `Bearer ${NEON_KEY}`,
-        'Content-Type': 'application/json'
+        "apikey": NEON_KEY,
+        "Authorization": `Bearer ${NEON_KEY}`,
+        "Content-Type": "application/json"
       }
     });
+    if(!res.ok) throw new Error(`${res.status} - ${res.statusText}`);
+
     registros = await res.json();
 
-    fotos = registros.map(item => `data:${item.mime};base64,${item.base64}`);
+    fotos = registros
+      .filter(r => r.base64) // pega apenas registros que têm imagem
+      .map(r => ({
+        id: r.id,
+        nome: r.nome,
+        mime: r.mime,
+        data: r.base64
+      }));
 
-    galeria.innerHTML = '';
-    fotos.forEach((dataUrl, i) => {
+    fotos.forEach((f, i) => {
       const img = document.createElement('img');
-      img.src = dataUrl;
-      img.alt = `Foto ${i+1}`;
+      img.src = `data:${f.mime};base64,${f.data}`;
+      img.alt = f.nome || `Foto ${i+1}`;
       galeria.appendChild(img);
     });
-  } catch (err) {
-    console.error('Erro ao carregar fotos do Neon:', err);
-    alert('Erro ao buscar fotos. Confira o console.');
+
+  } catch(err) {
+    console.error("Erro ao carregar fotos:", err);
+    alert("Erro ao carregar fotos. Confira o console.");
   }
 }
 
-async function baixarETLimpar() {
+// Função para baixar todas as fotos em ZIP
+async function baixarTodasFotos() {
   if(fotos.length === 0){
-    alert('Nenhuma foto para baixar.');
+    alert("Nenhuma foto para baixar.");
     return;
   }
 
   const zip = new JSZip();
+  fotos.forEach((f, i) => {
+    const byteCharacters = atob(f.data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let j = 0; j < byteCharacters.length; j++) {
+      byteNumbers[j] = byteCharacters.charCodeAt(j);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    zip.file(`${f.nome || 'foto_'+(i+1)}.jpg`, byteArray);
+  });
 
-  for(let i=0; i<fotos.length; i++){
-    const res = await fetch(fotos[i]);
-    const blob = await res.blob();
-    zip.file(`foto_${i+1}.jpg`, blob);
-  }
-
-  const content = await zip.generateAsync({ type:'blob' });
+  const content = await zip.generateAsync({type:'blob'});
   saveAs(content, 'vistoria.zip');
 
-  // Apagar registros no Neon
-  for(let item of registros){
-    await fetch(`${NEON_API}?id=eq.${item.id}`, {
-      method: 'DELETE',
-      headers: {
-        'apikey': NEON_KEY,
-        'Authorization': `Bearer ${NEON_KEY}`
-      }
-    });
-  }
-
-  galeria.innerHTML = '';
-  fotos = [];
-  registros = [];
-  alert('Fotos baixadas e registros apagados!');
+  // Após baixar, apagar os registros do Neon
+  await apagarRegistros();
 }
 
-btnDownload.addEventListener('click', baixarETLimpar);
+// Função para apagar registros do Neon
+async function apagarRegistros() {
+  try {
+    for(const r of registros){
+      await fetch(`${NEON_API}?id=eq.${r.id}`, {
+        method: 'DELETE',
+        headers: {
+          "apikey": NEON_KEY,
+          "Authorization": `Bearer ${NEON_KEY}`,
+          "Content-Type": "application/json"
+        }
+      });
+    }
+    galeria.innerHTML = '';
+    fotos = [];
+    alert("Fotos baixadas e registros apagados do Neon!");
+  } catch(err) {
+    console.error("Erro ao apagar registros:", err);
+    alert("Erro ao apagar registros. Confira o console.");
+  }
+}
 
-// Ao carregar a página
+btnDownload.addEventListener('click', baixarTodasFotos);
+
+// Carregar fotos ao abrir a página
 carregarFotos();
+
 </script>
 </body>
 </html>
-
