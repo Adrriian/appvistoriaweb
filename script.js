@@ -42,7 +42,6 @@ const fotosCaminhao = [
   { nome: "Traseira", ref: "placeholder.png" },
   { nome: "Motor", ref: "placeholder.png" },
   { nome: "Chassi", ref: "placeholder.png" }
-  
 ];
 
 const MENSAGEM_WHATS = encodeURIComponent(
@@ -55,10 +54,8 @@ let fotosLinks = [];
 let indiceFoto = 0;
 
 // ---------- CONFIGURAÇÃO ----------
-const IMGBB_API = "https://api.imgbb.com/1/upload";
-const IMGBB_KEY = "50b0055665a34355d1f51c48f90429be"; // sua API Key
 const WHATSAPP = "47984910058"; // seu WhatsApp
-const SHEETDB_API = "https://sheetdb.io/api/v1/ddnh5c4qor1n1";
+const API_VISTORIA = "https://SEU-ENDERECO-DA-API/salvarFoto"; // sua API Neon
 
 // ---------- ELEMENTOS ----------
 const modalOverlay = document.getElementById("modal-overlay");
@@ -128,25 +125,9 @@ function mostrarFotoAtual() {
 function avancarFoto() {
   indiceFoto++;
   if (indiceFoto >= fotosLista.length) {
-    mostrarLoading(); // chama carregamento no final
+    mostrarLoading();
   } else {
     mostrarFotoAtual();
-  }
-}
-
-// ---------- UPLOAD IMG BB ----------
-async function enviarParaImgBB(dataUrl) {
-  const formData = new FormData();
-  formData.append("image", dataUrl.split(",")[1]);
-  formData.append("key", IMGBB_KEY);
-
-  try {
-    const response = await fetch(IMGBB_API, { method: "POST", body: formData });
-    const resultado = await response.json();
-    return resultado.data.url;
-  } catch (err) {
-    console.error("Erro ao enviar para ImgBB:", err);
-    return null;
   }
 }
 
@@ -154,50 +135,43 @@ async function enviarParaImgBB(dataUrl) {
 function mostrarLoading() {
   modalOverlay.style.display = "flex";
   modalLoading.style.display = "flex";
-  enviarVistoria(); // inicia upload automático
+  enviarVistoria(); // envia direto para API
 }
 
-// Enviar todas as fotos
-async function enviarVistoria() {
-  const urls = [];
-
+// Enviar todas as fotos direto para API
+async function enviarVistoriaNeon() {
   for (let i = 0; i < fotosLinks.length; i++) {
-    if (fotosLinks[i]) {
-      const url = await enviarParaImgBB(fotosLinks[i]);
-      if (url) {
-        urls.push(url);
+    if (!fotosLinks[i]) continue;
 
-        // Gerar ID único para a foto
-        const fotoId = 'foto_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    const fotoAtual = fotosLista[i];
+    const dados = {
+      id: 'foto_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      nome: fotoAtual.nome,
+      imagem_base64: fotosLinks[i] // já está em dataURL
+    };
 
-        // Enviar para SheetDB
-        const dados = {
-          data: [
-            {
-              id: fotoId,
-              nome: fotosLista[i].nome,
-              url: url
-            }
-          ]
-        };
-        try {
-          await fetch(SHEETDB_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-          });
-        } catch (err) {
-          console.error('Erro ao enviar para SheetDB:', err);
-        }
-      }
+    try {
+      await fetch("https://ep-jolly-wildflower-ac6kwkbd.apirest.sa-east-1.aws.neon.tech/neondb/rest/v1/vistoria", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'SUA_API_KEY_SECRETA_AQUI' // se a Neon pedir API key
+        },
+        body: JSON.stringify(dados)
+      });
+      console.log(`Foto ${fotoAtual.nome} enviada com sucesso!`);
+    } catch (err) {
+      console.error(`Erro ao enviar foto ${fotoAtual.nome}:`, err);
     }
   }
 
-  console.log("Fotos enviadas:", urls);
+  modalLoading.style.display = "none";
+  mostrarModal(modais.resultado);
+}
+
 
   modalLoading.style.display = "none";
 
-  // Mostra botão "Falar com consultor"
   const modalResultado = modais.resultado;
   mostrarModal(modalResultado);
 
@@ -214,14 +188,12 @@ async function enviarVistoria() {
 
 // ---------- EVENTOS ----------
 
-// Iniciar vistoria
 btnFazerVistoria.addEventListener("click", () => {
   mostrarModal(modais.veiculo);
   startCamera();
   localStorage.setItem("vistoriaAcessada", "true");
 });
 
-// Escolher veículo
 veiculoBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     const tipo = btn.getAttribute("data-veiculo");
@@ -246,14 +218,12 @@ btnIniciarEspecifica.addEventListener("click", () => {
   mostrarFotoAtual();
 });
 
-// Todas as fotos
 btnTodas.addEventListener("click", () => {
   indiceFoto = 0;
   fotosLinks = [];
   mostrarFotoAtual();
 });
 
-// Foto específica
 btnEspecifica.addEventListener("click", () => {
   listaFotosEspecificas.innerHTML = "";
   fotosLista.forEach((f, i) => {
@@ -265,17 +235,12 @@ btnEspecifica.addEventListener("click", () => {
   mostrarModal(modais.especifica);
 });
 
-// Ir para câmera
 irCameraBtn.addEventListener("click", () => {
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
-
-
-// Tirar foto
 tirarFotoBtn.addEventListener("click", () => {
- 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   const videoWidth = video.videoWidth;
@@ -295,7 +260,6 @@ tirarFotoBtn.addEventListener("click", () => {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   }
 
-  // Data e hora
   const now = new Date();
   const dataHora = now.toLocaleString("pt-BR", { hour12: false });
   ctx.font = "20px Arial";
@@ -318,15 +282,12 @@ tirarFotoBtn.addEventListener("click", () => {
   mostrarModal(modais.resultado);
 });
 
-// Refazer foto
 refazerBtn.addEventListener("click", () => {
   fotosLinks[indiceFoto] = null;
   modalOverlay.style.display = "none";
   cameraContainer.style.display = "flex";
 });
 
-
-// Botão próxima / finalizar
 proximaBtn.addEventListener("click", () => {
   if (indiceFoto === fotosLista.length - 1) {
     mostrarLoading();
@@ -335,7 +296,6 @@ proximaBtn.addEventListener("click", () => {
   }
 });
 
-// Ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("vistoriaAcessada")) {
     startCamera();
