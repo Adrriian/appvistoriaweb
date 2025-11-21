@@ -139,20 +139,30 @@ function mostrarLoading() {
   enviarVistoriaNeon(); // inicia envio direto para Neon
 }
 
-// ---------- ENVIO PARA NEON ----------
+// ---------- ENVIO PARA NEON (VERSÃO AJUSTADA) ----------
 async function enviarVistoriaNeon() {
   for (let i = 0; i < fotosLinks.length; i++) {
     if (!fotosLinks[i]) continue;
 
     const fotoAtual = fotosLista[i];
+
+    // Extrai o base64 da dataURL
+    const dataUrl = fotosLinks[i];
+    const base64 = dataUrl.split(',')[1]; // remove "data:image/jpeg;base64,"
+    const mimeMatch = dataUrl.match(/^data:(image\/\w+);base64,/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+    const tamanho_bytes = Math.round(base64.length * 3 / 4); // aproximação do tamanho em bytes
+
     const dados = {
       id: 'foto_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
       nome: fotoAtual.nome,
-      imagem_base64: fotosLinks[i] // dataURL completo
+      mime: mime,
+      base64: base64,
+      tamanho_bytes: tamanho_bytes
     };
 
     try {
-      await fetch(NEON_API, {
+      const response = await fetch(NEON_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,7 +170,12 @@ async function enviarVistoriaNeon() {
         },
         body: JSON.stringify(dados)
       });
-      console.log(`Foto ${fotoAtual.nome} enviada com sucesso!`);
+
+      if (!response.ok) {
+        console.error(`Erro ao enviar foto ${fotoAtual.nome}:`, await response.text());
+      } else {
+        console.log(`Foto ${fotoAtual.nome} enviada com sucesso!`);
+      }
     } catch (err) {
       console.error(`Erro ao enviar foto ${fotoAtual.nome}:`, err);
     }
