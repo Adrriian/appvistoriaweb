@@ -275,15 +275,15 @@ img,
   .img-details img,
   .img-details2 img,
   .foto-box img {
-    max-width: 120px;
+    max-width: 100px;
   }
 
   .ft_rf {
-    max-width: 200px;
+    max-width: 150px;
   }
 
   .referencia-img {
-    max-width: 180px;
+    max-width: 130px;
   }
 
   /* Evita quebra dos grids em modo deitado */
